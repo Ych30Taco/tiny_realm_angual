@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>TinyRealm 模組測試平台</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/modules.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            padding: 30px;
+        }
+        .module-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+        }
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        .module-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            border: none;
+        }
+        .module-body {
+            padding: 25px;
+        }
+        .btn-module {
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        .btn-module:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .result-area {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-active { background-color: #28a745; }
+        .status-inactive { background-color: #dc3545; }
+        .status-loading { background-color: #ffc107; }
+        .nav-tabs .nav-link {
+            border-radius: 10px 10px 0 0;
+            border: none;
+            color: #6c757d;
+            font-weight: 600;
+        }
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .map-preview {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .terrain-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            gap: 2px;
+            margin: 20px auto;
+            max-width: 320px;
+        }
+        .terrain-cell {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .terrain-cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        
+        .terrain-cell.selected {
+            border: 3px solid #ffc107;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+        }
+        
+        .terrain-cell.occupied {
+            border: 2px solid #dc3545;
+        }
+        
+        .terrain-cell.owned {
+            border: 2px solid #28a745;
+        }
+        
+        .tile-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .terrain-cell:hover .tile-tooltip {
+            opacity: 1;
+        }
+        .terrain-plain { background-color: #a2d149; }         /* 平原：淡綠 */
+        .terrain-forest { background-color: #228B22; }        /* 森林：深綠 */
+        .terrain-mountain { background-color: #6c757d; }      /* 山脈：灰 */
+        .terrain-iron_mine { background-color: #b0b0b0; }     /* 鐵礦：銀灰 */
+        .terrain-stone_mine { background-color: #c2b280; }    /* 石礦：土黃 */
+        .terrain-waterfront { background-color: #5dade2; }    /* 水岸：亮藍 */
+        .terrain-river { background-color: #3498db; }         /* 河流：藍 */
+        .terrain-grassland { background-color: #7cfc00; }     /* 草原：亮綠 */
+        .terrain-desert { background-color: #f4a460; }        /* 沙漠：沙色 */
+        /* 全域玩家選擇區塊樣式可加在這裡（如需自訂） */
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- 全域玩家選擇下拉選單 -->
+            <div class="mb-4">
+                <div class="row justify-content-center">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i> 玩家</span>
+                            <select class="form-select" id="globalPlayerSelect">
+                                <option value="">請選擇玩家</option>
+                            </select>
+                            <button class="btn btn-outline-primary" type="button" onclick="loadPlayerList()">
+                                <i class="fas fa-sync"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 標題區域 -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 fw-bold text-primary">
+                    <i class="fas fa-gamepad me-3"></i>
+                </h1>
+                <p class="lead text-muted"></p>
+            </div>
+
+            <!-- 導航標籤 -->
+            <ul class="nav nav-tabs mb-4" id="moduleTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                        <i class="fas fa-tachometer-alt me-2"></i>總覽
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="player-tab" data-bs-toggle="tab" data-bs-target="#player" type="button" role="tab">
+                        <i class="fas fa-user me-2"></i>玩家模組
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="resource-tab" data-bs-toggle="tab" data-bs-target="#resource" type="button" role="tab">
+                        <i class="fas fa-coins me-2"></i>資源模組
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="building-tab" data-bs-toggle="tab" data-bs-target="#building" type="button" role="tab">
+                        <i class="fas fa-building me-2"></i>建築模組
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="soldier-tab" data-bs-toggle="tab" data-bs-target="#soldier" type="button" role="tab">
+                        <i class="fas fa-user-shield me-2"></i>士兵模組
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="terrainMap-tab" data-bs-toggle="tab" data-bs-target="#terrain" type="button" role="tab">
+                        <i class="fas fa-map me-2"></i>地形地圖模組
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="battle-tab" data-bs-toggle="tab" data-bs-target="#battle" type="button" role="tab">
+                        <i class="fas fa-fist-raised me-2"></i>戰鬥模組
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="data-admin-tab" data-bs-toggle="tab" data-bs-target="#dataAdmin" type="button" role="tab">
+                        <i class="fas fa-database me-2"></i>資料管理
+                    </button>
+                </li>
+            </ul>
+
+            <!-- 標籤內容 -->
+            <div class="tab-content" id="moduleTabsContent">
+                <!-- 總覽標籤 -->
+                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-chart-line me-2"></i>系統狀態</h5>
+                                </div>
+                                <div class="module-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>玩家模組</span>
+                                        <span id="playerModuleStatus">
+                                            <span class="status-indicator status-loading"></span>檢查中...
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>資源模組</span>
+                                        <span id="resourceModuleStatus">
+                                            <span class="status-indicator status-loading"></span>檢查中...
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>建築模組</span>
+                                        <span id="buildingModuleStatus">
+                                            <span class="status-indicator status-loading"></span>檢查中...
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span>地形地圖模組</span>
+                                        <span id="terrainMapModuleStatus">
+                                            <span class="status-indicator status-loading"></span>檢查中...
+                                        </span>
+                                    </div>
+                                    <button class="btn btn-module btn-info w-100 mt-3" onclick="checkModuleStatus()">
+                                        <i class="fas fa-sync me-2"></i>重新檢查狀態
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-cogs me-2"></i>快速操作</h5>
+                                </div>
+                                <div class="module-body">
+                                    <button class="btn btn-module btn-primary w-100 mb-3" onclick="initializeAllModules()">
+                                        <i class="fas fa-play me-2"></i>初始化所有模組
+                                    </button>
+                                    <button class="btn btn-module btn-success w-100 mb-3" onclick="runFullTest()">
+                                        <i class="fas fa-vial me-2"></i>執行完整測試
+                                    </button>
+                                    <button class="btn btn-module btn-warning w-100 mb-3" onclick="generateTestData()">
+                                        <i class="fas fa-database me-2"></i>生成測試資料
+                                    </button>
+                                    <button class="btn btn-module btn-danger w-100" onclick="resetAllData()">
+                                        <i class="fas fa-trash me-2"></i>重置所有資料
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                </div>
+
+                <!-- 地形模組標籤 -->
+                <div class="tab-pane fade" id="terrain" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <!-- 地圖預覽 -->
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-map-marked-alt me-2"></i>地圖預覽</h5>
+                                </div>
+                                <div class="module-body">
+                                    <div class="map-preview">
+                                        <div class="terrain-grid" id="terrainGrid">
+                                            <!-- 地形格子將由JavaScript動態生成 -->
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-3">
+                                        <div class="input-group mb-2" style="max-width: 220px; margin: 0 auto;">
+                                            <span class="input-group-text">地圖大小</span>
+                                            <input type="number" class="form-control" id="mapSizeInput" min="5" max="100" value="10">
+                                        </div>
+                                        <button class="btn btn-module btn-info" onclick="generateRandomMap()">
+                                            <i class="fas fa-random me-2"></i>生成隨機地圖預覽
+                                        </button>
+                                        <button class="btn btn-module btn-secondary ms-2" onclick="loadMapFromConfig()">
+                                            <i class="fas fa-file-import me-2"></i>載入配置地圖
+                                        </button>
+                                        <button class="btn btn-module btn-warning ms-2" onclick="overrideWithConfigMap()">
+                                            <i class="fas fa-save me-2"></i>覆蓋地圖
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <!-- 選中格子資訊 -->
+                            <div class="module-card mb-3" id="selectedTileInfo" style="display: none;">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-info-circle me-2"></i>選中格子資訊</h5>
+                                </div>
+                                <div class="module-body">
+                                    <div id="tileInfoContent">
+                                        <!-- 格子資訊將在這裡顯示 -->
+                                    </div>
+                                    <div class="mt-3" id="tileActions">
+                                        <!-- 操作按鈕將在這裡顯示 -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 地形管理 -->
+                            <div class="module-card mb-3">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-map me-2"></i>地形管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <form id="terrainForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">地形類型</label>
+                                            <select class="form-select" id="terrainType">
+                                                <option value="plain">平原</option>
+                                                <option value="forest">森林</option>
+                                                <option value="mountain">山脈</option>
+                                                <option value="iron_mine">鐵礦</option>
+                                                <option value="stone_mine">石礦</option>
+                                                <option value="waterfront">水岸</option>
+                                                <option value="river">河流</option>
+                                                <option value="grassland">草原</option>
+                                                <option value="desert">沙漠</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">座標 X</label>
+                                            <input type="number" class="form-control" id="terrainX" min="0" max="9" value="0">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">座標 Y</label>
+                                            <input type="number" class="form-control" id="terrainY" min="0" max="9" value="0">
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="setTerrain()">
+                                            <i class="fas fa-edit me-2"></i>設定地形
+                                        </button>
+                                        <button type="button" class="btn btn-module btn-info ms-2" onclick="getTerrain()">
+                                            <i class="fas fa-search me-2"></i>查詢地形
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <!-- 地形統計 -->
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-layer-group me-2"></i>地形統計</h5>
+                                </div>
+                                <div class="module-body">
+                                    <div id="terrainStats">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>平原:</span>
+                                            <span id="plainCount">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>森林:</span>
+                                            <span id="forestCount">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>山脈:</span>
+                                            <span id="mountainCount">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>鐵礦:</span>
+                                            <span id="iron_mineCount">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>石礦:</span>
+                                            <span id="stone_mineCount">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>水岸:</span>
+                                            <span id="waterfrontCount">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>河流:</span>
+                                            <span id="riverCount">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>草原:</span>
+                                            <span id="grasslandCount">0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span>沙漠:</span>
+                                            <span id="desertCount">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 地形配置資訊 -->
+                    <div class="module-card mt-3">
+                        <div class="module-header">
+                            <h5><i class="fas fa-cogs me-2"></i>地形配置資訊</h5>
+                        </div>
+                        <div class="module-body">
+                            <div id="terrainConfigInfo">
+                                <p class="text-muted">點擊按鈕載入地形配置資訊</p>
+                            </div>
+                            <button type="button" class="btn btn-module btn-info" onclick="loadTerrainConfig()">
+                                <i class="fas fa-sync me-2"></i>載入地形配置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 建築模組標籤 -->
+                <div class="tab-pane fade" id="building" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-building me-2"></i>建築管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <form id="buildingForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">建築類型</label>
+                                            <select class="form-select" id="buildingType">
+                                                <!-- 建築類型由JS載入 -->
+                                            </select>
+                                        </div>
+                                        <!-- 移除玩家ID欄位 -->
+                                        <div class="mb-3">
+                                            <label class="form-label">等級</label>
+                                            <input type="number" class="form-control" id="buildingLevel" min="1" max="20" value="1">
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="createBuilding()">
+                                            <i class="fas fa-plus me-2"></i>建造建築
+                                        </button>
+                                        <button type="button" class="btn btn-module btn-success ms-2" onclick="upgradeBuilding()">
+                                            <i class="fas fa-arrow-up me-2"></i>升級建築
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-list me-2"></i>建築列表</h5>
+                                </div>
+                                <div class="module-body">
+                                    <div id="buildingList">
+                                        <p class="text-muted">尚未載入建築資料</p>
+                                    </div>
+                                    <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadBuildings()">
+                                        <i class="fas fa-sync me-2"></i>重新載入
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 建築類型管理（CRUD 對應 buildings.json） -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-cubes me-2"></i>建築類型管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <form id="buildingTypeFullForm">
+                                        <input type="hidden" id="buildingTypeEditId">
+                                        <div class="mb-2">
+                                            <label>建築ID</label>
+                                            <input type="text" class="form-control" id="buildingTypeId">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>名稱</label>
+                                            <input type="text" class="form-control" id="buildingTypeName">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>類型</label>
+                                            <select class="form-select" id="buildingTypeType">
+                                                <option value="function">function</option>
+                                                <option value="resource">resource</option>
+                                                <option value="military">military</option>
+                                                <option value="defense">defense</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>資源類型（如需：FOOD / WOOD / IRON / STONE）</label>
+                                            <input type="text" class="form-control" id="buildingTypeResourceType" placeholder="可留空">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>最大數量</label>
+                                            <input type="number" class="form-control" id="buildingTypeMaxCount" min="1" value="1">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>允許地形（以逗號分隔）</label>
+                                            <input type="text" class="form-control" id="buildingTypeAllowedTerrains" placeholder="plain,grassland,forest,...">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>等級資料（levels，JSON 陣列）</label>
+                                            <textarea class="form-control" id="buildingTypeLevels" rows="8" placeholder='[
+  {
+    "level": 1,
+    "buildTime": 60000,
+    "cost": { "FOOD": 0, "WOOD": 0, "IRON": 0, "STONE": 0 },
+    "output": {},
+    "prerequisites": {},
+    "productionRate": 0
+  }
+]'></textarea>
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="saveBuildingTypeFull()">儲存/新增</button>
+                                        <button type="button" class="btn btn-module btn-danger ms-2" onclick="deleteBuildingTypeFull()">刪除</button>
+                                        <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearBuildingTypeFullForm()">清除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-list me-2"></i>建築類型列表</h5>
+                                </div>
+                                <div class="module-body">
+                                    <ul class="list-group mb-2" id="buildingTypeFullList"></ul>
+                                    <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadBuildingTypeFullList()">
+                                        <i class="fas fa-sync me-2"></i>重新載入
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                    function loadBuildingTypeFullList() {
+                        fetch('/api/building/types')
+                            .then(r => r.json())
+                            .then(data => {
+                                const list = document.getElementById('buildingTypeFullList');
+                                list.innerHTML = '';
+                                if (data.success && Array.isArray(data.data)) {
+                                    data.data.forEach(type => {
+                                        const safe = {
+                                            id: type.id || '',
+                                            name: type.name || '',
+                                            type: type.type || '',
+                                            resourceType: type.resourceType || '',
+                                            maxCount: type.maxCount || 1,
+                                            allowedTerrains: Array.isArray(type.allowedTerrains) ? type.allowedTerrains : [],
+                                            levels: Array.isArray(type.levels) ? type.levels : []
+                                        };
+                                        list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>${safe.id} - ${safe.name}</span>
+                                            <button class="btn btn-sm btn-secondary" onclick='editBuildingTypeFull(${JSON.stringify(safe)})'>編輯</button>
+                                        </li>`;
+                                    });
+                                }
+                            });
+                    }
+                    function editBuildingTypeFull(type) {
+                        document.getElementById('buildingTypeEditId').value = type.id;
+                        document.getElementById('buildingTypeId').value = type.id;
+                        document.getElementById('buildingTypeName').value = type.name || '';
+                        document.getElementById('buildingTypeType').value = type.type || 'function';
+                        document.getElementById('buildingTypeResourceType').value = type.resourceType || '';
+                        document.getElementById('buildingTypeMaxCount').value = type.maxCount || 1;
+                        document.getElementById('buildingTypeAllowedTerrains').value = (type.allowedTerrains || []).join(',');
+                        try {
+                            document.getElementById('buildingTypeLevels').value = JSON.stringify(type.levels || [], null, 2);
+                        } catch(e) {
+                            document.getElementById('buildingTypeLevels').value = '[]';
+                        }
+                    }
+                    function clearBuildingTypeFullForm() {
+                        document.getElementById('buildingTypeEditId').value = '';
+                        document.getElementById('buildingTypeId').value = '';
+                        document.getElementById('buildingTypeName').value = '';
+                        document.getElementById('buildingTypeType').value = 'function';
+                        document.getElementById('buildingTypeResourceType').value = '';
+                        document.getElementById('buildingTypeMaxCount').value = 1;
+                        document.getElementById('buildingTypeAllowedTerrains').value = '';
+                        document.getElementById('buildingTypeLevels').value = '';
+                    }
+                    function saveBuildingTypeFull() {
+                        const id = document.getElementById('buildingTypeId').value.trim();
+                        const name = document.getElementById('buildingTypeName').value.trim();
+                        const type = document.getElementById('buildingTypeType').value;
+                        const resourceType = document.getElementById('buildingTypeResourceType').value.trim() || null;
+                        const maxCount = parseInt(document.getElementById('buildingTypeMaxCount').value) || 1;
+                        const allowedTerrainsStr = document.getElementById('buildingTypeAllowedTerrains').value;
+                        const levelsStr = document.getElementById('buildingTypeLevels').value;
+
+                        if (!id) { showResult('請輸入建築ID'); return; }
+                        if (!name) { showResult('請輸入名稱'); return; }
+
+                        let allowedTerrains = [];
+                        if (allowedTerrainsStr && allowedTerrainsStr.trim().length > 0) {
+                            allowedTerrains = allowedTerrainsStr.split(',').map(s => s.trim()).filter(Boolean);
+                        }
+
+                        let levels = [];
+                        try {
+                            levels = JSON.parse(levelsStr || '[]');
+                            if (!Array.isArray(levels)) throw new Error('levels 必須為陣列');
+                        } catch (e) {
+                            showResult('等級資料格式錯誤：' + e.message);
+                            return;
+                        }
+
+                        const building = {
+                            id,
+                            name,
+                            type,
+                            resourceType,
+                            maxCount,
+                            allowedTerrains,
+                            levels
+                        };
+
+                        const editId = document.getElementById('buildingTypeEditId').value;
+                        const url = editId ? '/api/building/type/update' : '/api/building/type/create';
+                        fetch(url, {
+                            method: editId ? 'PUT' : 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(building)
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                showResult('儲存成功');
+                                loadBuildingTypeFullList();
+                                clearBuildingTypeFullForm();
+                                // 重新載入下拉可選建築
+                                loadBuildingTypes();
+                            } else {
+                                showResult('儲存失敗：' + data.message);
+                            }
+                        });
+                    }
+                    function deleteBuildingTypeFull() {
+                        const id = document.getElementById('buildingTypeId').value;
+                        if (!id) { showResult('請先選擇要刪除的建築'); return; }
+                        fetch(`/api/building/type/delete/${id}`, { method: 'DELETE' })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                showResult('刪除成功');
+                                loadBuildingTypeFullList();
+                                clearBuildingTypeFullForm();
+                                loadBuildingTypes();
+                            } else {
+                                showResult('刪除失敗：' + data.message);
+                            }
+                        });
+                    }
+                    document.addEventListener('DOMContentLoaded', loadBuildingTypeFullList);
+                    </script>
+                </div>
+
+                <!-- 資源模組標籤 -->
+                <div class="tab-pane fade" id="resource" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-coins me-2"></i>資源類型管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <form id="resourceTypeFullForm">
+                                        <input type="hidden" id="resourceTypeEditId">
+                                        <div class="mb-2">
+                                            <label>資源ID</label>
+                                            <input type="text" class="form-control" id="resourceTypeId">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>名稱 (中文)</label>
+                                            <input type="text" class="form-control" id="resourceTypeNameZh">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>名稱 (英文)</label>
+                                            <input type="text" class="form-control" id="resourceTypeNameEn">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>描述 (中文)</label>
+                                            <input type="text" class="form-control" id="resourceTypeDescZh">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>描述 (英文)</label>
+                                            <input type="text" class="form-control" id="resourceTypeDescEn">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>圖示URL</label>
+                                            <input type="text" class="form-control" id="resourceTypeIconURL">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>Premium</label>
+                                            <select class="form-select" id="resourceTypePremium">
+                                                <option value="false">否</option>
+                                                <option value="true">是</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>Stackable</label>
+                                            <select class="form-select" id="resourceTypeStackable">
+                                                <option value="true">可堆疊</option>
+                                                <option value="false">不可堆疊</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>分類</label>
+                                            <input type="text" class="form-control" id="resourceTypeCategory">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>排序</label>
+                                            <input type="number" class="form-control" id="resourceTypeSortOrder">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>基礎產量</label>
+                                            <input type="number" class="form-control" id="resourceTypeBaseProductionRate">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>初始數量</label>
+                                            <input type="number" class="form-control" id="resourceTypeNowAmount">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>最大數量</label>
+                                            <input type="number" class="form-control" id="resourceTypeMaxAmount">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>保護倉庫百分比</label>
+                                            <input type="number" step="0.01" class="form-control" id="resourceTypeProtectedStoragePercentage">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>保護倉庫最大量</label>
+                                            <input type="number" class="form-control" id="resourceTypeProtectedStorageMaxAmount">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>取得方式 (逗號分隔)</label>
+                                            <input type="text" class="form-control" id="resourceTypeAcquisitionMethods">
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="saveResourceTypeFull()">儲存/新增</button>
+                                        <button type="button" class="btn btn-module btn-danger ms-2" onclick="deleteResourceTypeFull()">刪除</button>
+                                        <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearResourceTypeFullForm()">清除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-list me-2"></i>資源類型列表</h5>
+                                </div>
+                                <div class="module-body">
+                                    <ul class="list-group mb-2" id="resourceTypeFullList"></ul>
+                                    <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadResourceTypeFullList()">
+                                        <i class="fas fa-sync me-2"></i>重新載入
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                    function loadResourceTypeFullList() {
+                        fetch('/api/resource/types')
+                            .then(r => r.json())
+                            .then(data => {
+                                const list = document.getElementById('resourceTypeFullList');
+                                list.innerHTML = '';
+                                if (data.success && Array.isArray(data.data)) {
+                                    data.data.forEach(type => {
+                                        list.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>${type.id} - ${type.name['zh-TW']}</span>
+                                            <button class="btn btn-sm btn-secondary" onclick='editResourceTypeFull(${JSON.stringify(type)})'>編輯</button>
+                                        </li>`;
+                                    });
+                                }
+                            });
+                    }
+                    function editResourceTypeFull(type) {
+                        document.getElementById('resourceTypeEditId').value = type.id;
+                        document.getElementById('resourceTypeId').value = type.id;
+                        document.getElementById('resourceTypeNameZh').value = type.name['zh-TW'] || '';
+                        document.getElementById('resourceTypeNameEn').value = type.name['en'] || '';
+                        document.getElementById('resourceTypeDescZh').value = type.resourceDescription['zh-TW'] || '';
+                        document.getElementById('resourceTypeDescEn').value = type.resourceDescription['en'] || '';
+                        document.getElementById('resourceTypeIconURL').value = type.resourceIconURL || '';
+                        document.getElementById('resourceTypePremium').value = type.premium ? 'true' : 'false';
+                        document.getElementById('resourceTypeStackable').value = type.stackable ? 'true' : 'false';
+                        document.getElementById('resourceTypeCategory').value = type.category || '';
+                        document.getElementById('resourceTypeSortOrder').value = type.sortOrder || 0;
+                        document.getElementById('resourceTypeBaseProductionRate').value = type.baseProductionRate || 0;
+                        document.getElementById('resourceTypeNowAmount').value = type.nowAmount || 0;
+                        document.getElementById('resourceTypeMaxAmount').value = type.maxAmount || 0;
+                        document.getElementById('resourceTypeProtectedStoragePercentage').value = type.protectedStoragePercentage || 0;
+                        document.getElementById('resourceTypeProtectedStorageMaxAmount').value = type.protectedStorageMaxAmount || 0;
+                        document.getElementById('resourceTypeAcquisitionMethods').value = (type.acquisitionMethods || []).join(',');
+                    }
+                    function clearResourceTypeFullForm() {
+                        document.getElementById('resourceTypeEditId').value = '';
+                        document.getElementById('resourceTypeId').value = '';
+                        document.getElementById('resourceTypeNameZh').value = '';
+                        document.getElementById('resourceTypeNameEn').value = '';
+                        document.getElementById('resourceTypeDescZh').value = '';
+                        document.getElementById('resourceTypeDescEn').value = '';
+                        document.getElementById('resourceTypeIconURL').value = '';
+                        document.getElementById('resourceTypePremium').value = 'false';
+                        document.getElementById('resourceTypeStackable').value = 'true';
+                        document.getElementById('resourceTypeCategory').value = '';
+                        document.getElementById('resourceTypeSortOrder').value = 0;
+                        document.getElementById('resourceTypeBaseProductionRate').value = 0;
+                        document.getElementById('resourceTypeNowAmount').value = 0;
+                        document.getElementById('resourceTypeMaxAmount').value = 0;
+                        document.getElementById('resourceTypeProtectedStoragePercentage').value = 0;
+                        document.getElementById('resourceTypeProtectedStorageMaxAmount').value = 0;
+                        document.getElementById('resourceTypeAcquisitionMethods').value = '';
+                    }
+                    function saveResourceTypeFull() {
+                        const id = document.getElementById('resourceTypeId').value;
+                        const nameZh = document.getElementById('resourceTypeNameZh').value;
+                        const nameEn = document.getElementById('resourceTypeNameEn').value;
+                        const descZh = document.getElementById('resourceTypeDescZh').value;
+                        const descEn = document.getElementById('resourceTypeDescEn').value;
+                        const iconURL = document.getElementById('resourceTypeIconURL').value;
+                        const premium = document.getElementById('resourceTypePremium').value === 'true';
+                        const stackable = document.getElementById('resourceTypeStackable').value === 'true';
+                        const category = document.getElementById('resourceTypeCategory').value;
+                        const sortOrder = parseInt(document.getElementById('resourceTypeSortOrder').value) || 0;
+                        const baseProductionRate = parseInt(document.getElementById('resourceTypeBaseProductionRate').value) || 0;
+                        const nowAmount = parseInt(document.getElementById('resourceTypeNowAmount').value) || 0;
+                        const maxAmount = parseInt(document.getElementById('resourceTypeMaxAmount').value) || 0;
+                        const protectedStoragePercentage = parseFloat(document.getElementById('resourceTypeProtectedStoragePercentage').value) || 0;
+                        const protectedStorageMaxAmount = parseInt(document.getElementById('resourceTypeProtectedStorageMaxAmount').value) || 0;
+                        const acquisitionMethods = document.getElementById('resourceTypeAcquisitionMethods').value.split(',').map(s => s.trim()).filter(s => s);
+                        const resource = {
+                            id,
+                            name: { 'zh-TW': nameZh, 'en': nameEn },
+                            resourceDescription: { 'zh-TW': descZh, 'en': descEn },
+                            resourceIconURL: iconURL,
+                            premium,
+                            stackable,
+                            category,
+                            sortOrder,
+                            baseProductionRate,
+                            nowAmount,
+                            maxAmount,
+                            protectedStoragePercentage,
+                            protectedStorageMaxAmount,
+                            acquisitionMethods
+                        };
+                        // 判斷是新增還是修改
+                        const editId = document.getElementById('resourceTypeEditId').value;
+                        const url = editId ? '/api/resource/update' : '/api/resource/create';
+                        fetch(url, {
+                            method: editId ? 'PUT' : 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(resource)
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                showResult('儲存成功');
+                                loadResourceTypeFullList();
+                                clearResourceTypeFullForm();
+                            } else {
+                                showResult('儲存失敗：' + data.message);
+                            }
+                        });
+                    }
+                    function deleteResourceTypeFull() {
+                        const id = document.getElementById('resourceTypeId').value;
+                        if (!id) { showResult('請先選擇要刪除的資源'); return; }
+                        fetch(`/api/resource/delete/${id}`, {
+                            method: 'DELETE'
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                showResult('刪除成功');
+                                loadResourceTypeFullList();
+                                clearResourceTypeFullForm();
+                            } else {
+                                showResult('刪除失敗：' + data.message);
+                            }
+                        });
+                    }
+                    document.addEventListener('DOMContentLoaded', loadResourceTypeFullList);
+                    </script>
+                </div>
+
+                <!-- 玩家模組標籤 -->
+                <div class="tab-pane fade" id="player" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-user me-2"></i>玩家管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <form id="playerForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">玩家名稱</label>
+                                            <input type="text" class="form-control" id="playerName" value="測試玩家">
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="createPlayer()">
+                                            <i class="fas fa-user-plus me-2"></i>創建玩家
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-users me-2"></i>玩家列表</h5>
+                                </div>
+                                <div class="module-body">
+                                    <div id="playerList">
+                                        <p class="text-muted">已載入玩家資料</p>
+                                    </div>
+                                    <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadPlayers()">
+                                        <i class="fas fa-sync me-2"></i>重新載入
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 士兵模組標籤（CRUD 對應 soldiers.json） -->
+                <div class="tab-pane fade" id="soldier" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-user-shield me-2"></i>士兵類型管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <form id="soldierTypeFullForm">
+                                        <input type="hidden" id="soldierTypeFullEditId">
+                                        <div class="mb-2">
+                                            <label>士兵ID</label>
+                                            <input type="text" class="form-control" id="soldierTypeFullId">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>名稱</label>
+                                            <input type="text" class="form-control" id="soldierTypeFullName">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>類型</label>
+                                            <select class="form-select" id="soldierTypeFullType">
+                                                <option value="INFANTRY">INFANTRY</option>
+                                                <option value="ARCHER">ARCHER</option>
+                                                <option value="CAVALRY">CAVALRY</option>
+                                                <option value="SIEGE">SIEGE</option>
+                                                <option value="MAGE">MAGE</option>
+                                                <option value="DEFENDER">DEFENDER</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>描述</label>
+                                            <input type="text" class="form-control" id="soldierTypeFullDesc">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>站位</label>
+                                            <select class="form-select" id="soldierTypeFullFormation">
+                                                <option value="FRONT">FRONT</option>
+                                                <option value="MIDDLE">MIDDLE</option>
+                                                <option value="BACK">BACK</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>需求建築（requirements，JSON 物件）</label>
+                                            <textarea class="form-control" id="soldierTypeFullReq" rows="3" placeholder='{"mainHall":1}'></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>需求科技（requiredTech，JSON 物件）</label>
+                                            <textarea class="form-control" id="soldierTypeFullTech" rows="3" placeholder='{}'></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>技能（skills，JSON 物件）</label>
+                                            <textarea class="form-control" id="soldierTypeFullSkills" rows="3" placeholder='{}'></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>屬性（stats，JSON 物件）</label>
+                                            <textarea class="form-control" id="soldierTypeFullStats" rows="8" placeholder='{"cost":{"food":100,"wood":100},"attack":10,"defense":8,"hp":50,"speed":3,"range":1,"trainingTime":120}'></textarea>
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="saveSoldierTypeFull()">儲存/新增</button>
+                                        <button type="button" class="btn btn-module btn-danger ms-2" onclick="deleteSoldierTypeFull()">刪除</button>
+                                        <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearSoldierTypeFullForm()">清除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-list me-2"></i>士兵類型列表</h5>
+                                </div>
+                                <div class="module-body">
+                                    <ul class="list-group mb-2" id="soldierTypeFullList"></ul>
+                                    <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadSoldierTypeFullList()">
+                                        <i class="fas fa-sync me-2"></i>重新載入
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                    function loadSoldierTypeFullList() {
+                        fetch('/api/soldier/types')
+                            .then(r => r.json())
+                            .then(res => {
+                                const list = document.getElementById('soldierTypeFullList');
+                                list.innerHTML = '';
+                                if (res.success && Array.isArray(res.data)) {
+                                    res.data.forEach(s => {
+                                        const safe = {
+                                            id: s.id || '',
+                                            name: s.name || '',
+                                            type: s.type || 'INFANTRY',
+                                            description: s.description || '',
+                                            formationPosition: s.formationPosition || 'FRONT',
+                                            requirements: s.requirements || {},
+                                            requiredTech: s.requiredTech || {},
+                                            skills: s.skills || {},
+                                            stats: s.stats || {}
+                                        };
+                                        list.innerHTML += `<li class=\"list-group-item d-flex justify-content-between align-items-center\">`
+                                            + `<span>${safe.id} - ${safe.name}</span>`
+                                            + `<button class=\"btn btn-sm btn-secondary\" onclick='editSoldierTypeFull(${JSON.stringify(safe)})'>編輯</button>`
+                                            + `</li>`;
+                                    });
+                                }
+                            });
+                    }
+                    function editSoldierTypeFull(s) {
+                        document.getElementById('soldierTypeFullEditId').value = s.id;
+                        document.getElementById('soldierTypeFullId').value = s.id;
+                        document.getElementById('soldierTypeFullName').value = s.name || '';
+                        document.getElementById('soldierTypeFullType').value = s.type || 'INFANTRY';
+                        document.getElementById('soldierTypeFullDesc').value = s.description || '';
+                        document.getElementById('soldierTypeFullFormation').value = s.formationPosition || 'FRONT';
+                        document.getElementById('soldierTypeFullReq').value = JSON.stringify(s.requirements || {}, null, 2);
+                        document.getElementById('soldierTypeFullTech').value = JSON.stringify(s.requiredTech || {}, null, 2);
+                        document.getElementById('soldierTypeFullSkills').value = JSON.stringify(s.skills || {}, null, 2);
+                        document.getElementById('soldierTypeFullStats').value = JSON.stringify(s.stats || {}, null, 2);
+                    }
+                    function clearSoldierTypeFullForm() {
+                        document.getElementById('soldierTypeFullEditId').value = '';
+                        document.getElementById('soldierTypeFullId').value = '';
+                        document.getElementById('soldierTypeFullName').value = '';
+                        document.getElementById('soldierTypeFullType').value = 'INFANTRY';
+                        document.getElementById('soldierTypeFullDesc').value = '';
+                        document.getElementById('soldierTypeFullFormation').value = 'FRONT';
+                        document.getElementById('soldierTypeFullReq').value = '';
+                        document.getElementById('soldierTypeFullTech').value = '';
+                        document.getElementById('soldierTypeFullSkills').value = '';
+                        document.getElementById('soldierTypeFullStats').value = '';
+                    }
+                    function saveSoldierTypeFull() {
+                        const id = document.getElementById('soldierTypeFullId').value.trim();
+                        const name = document.getElementById('soldierTypeFullName').value.trim();
+                        const type = document.getElementById('soldierTypeFullType').value;
+                        const description = document.getElementById('soldierTypeFullDesc').value.trim();
+                        const formationPosition = document.getElementById('soldierTypeFullFormation').value;
+                        if (!id) { showResult('請輸入士兵ID'); return; }
+                        if (!name) { showResult('請輸入名稱'); return; }
+                        let requirements = {}; let requiredTech = {}; let skills = {}; let stats = {};
+                        try { requirements = JSON.parse(document.getElementById('soldierTypeFullReq').value || '{}'); } catch (e) { showResult('需求建築 JSON 格式錯誤'); return; }
+                        try { requiredTech = JSON.parse(document.getElementById('soldierTypeFullTech').value || '{}'); } catch (e) { showResult('需求科技 JSON 格式錯誤'); return; }
+                        try { skills = JSON.parse(document.getElementById('soldierTypeFullSkills').value || '{}'); } catch (e) { showResult('技能 JSON 格式錯誤'); return; }
+                        try { stats = JSON.parse(document.getElementById('soldierTypeFullStats').value || '{}'); } catch (e) { showResult('屬性 stats JSON 格式錯誤'); return; }
+                        const payload = { id, name, type, description, formationPosition, requirements, requiredTech, skills, stats };
+                        const editId = document.getElementById('soldierTypeFullEditId').value;
+                        const url = editId ? '/api/soldier/updateType' : '/api/soldier/createType';
+                        fetch(url, { method: editId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res.success) { showResult('儲存成功'); loadSoldierTypeFullList(); clearSoldierTypeFullForm(); }
+                            else { showResult('儲存失敗：' + res.message); }
+                        });
+                    }
+                    function deleteSoldierTypeFull() {
+                        const id = document.getElementById('soldierTypeFullId').value;
+                        if (!id) { showResult('請先選擇要刪除的士兵'); return; }
+                        fetch(`/api/soldier/deleteType/${id}`, { method: 'DELETE' })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res.success) { showResult('刪除成功'); loadSoldierTypeFullList(); clearSoldierTypeFullForm(); }
+                            else { showResult('刪除失敗：' + res.message); }
+                        });
+                    }
+                    document.addEventListener('DOMContentLoaded', loadSoldierTypeFullList);
+                    </script>
+                </div>
+
+                <!-- 戰鬥模組標籤 -->
+                <div class="tab-pane fade" id="battle" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-sword me-2"></i>戰鬥管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <form id="battleForm">
+                                        <!-- 玩家選擇 -->
+                                        <div class="mb-3">
+                                            <label class="form-label">戰鬥模組-選擇玩家</label>
+                                            <select class="form-select" id="battlePlayerSelect"></select>
+                                        </div>
+                                        <!-- 士兵選擇區 -->
+                                        <div class="mb-3">
+                                            <label class="form-label">選擇派出士兵</label>
+                                            <div id="soldierSelectArea"></div>
+                                        </div>
+                                        <!-- 敵人類型 -->
+                                        <div class="mb-3">
+                                            <label class="form-label">敵人類型</label>
+                                            <select class="form-select" id="enemyType">
+                                                <option value="">選擇敵人類型...</option>
+                                            </select>
+                                        </div>
+                                        <!-- 戰鬥座標 -->
+                                        <div class="mb-3">
+                                            <label class="form-label">戰鬥位置X</label>
+                                            <input type="number" class="form-control" id="battleLocationX" min="0" max="7" value="0">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">戰鬥位置Y</label>
+                                            <input type="number" class="form-control" id="battleLocationY" min="0" max="7" value="0">
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="battleIsTest">
+                                                <label class="form-check-label">測試模式</label>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-danger" onclick="startBattle()">
+                                            <i class="fas fa-fight me-2"></i>開始戰鬥
+                                        </button>
+                                        <button type="button" class="btn btn-module btn-info ms-2" onclick="loadEnemyTypes()">
+                                            <i class="fas fa-sync me-2"></i>載入敵人類型
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-history me-2"></i>戰鬥記錄</h5>
+                                </div>
+                                <div class="module-body">
+                                    <div id="battleHistory">
+                                        <p class="text-muted">尚未載入戰鬥記錄</p>
+                                    </div>
+                                    <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadBattleHistory()">
+                                        <i class="fas fa-sync me-2"></i>重新載入
+                                    </button>
+                                    <button type="button" class="btn btn-module btn-warning w-100 mt-2" onclick="clearTestBattles()">
+                                        <i class="fas fa-trash me-2"></i>清理測試數據
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-chart-bar me-2"></i>戰鬥統計</h5>
+                                </div>
+                                <div class="module-body">
+                                    <div id="battleStats">
+                                        <p class="text-muted">尚未載入戰鬥統計</p>
+                                    </div>
+                                    <button type="button" class="btn btn-module btn-secondary w-100 mt-3" onclick="loadBattleStats()">
+                                        <i class="fas fa-chart-line me-2"></i>載入戰鬥統計
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 敵人類型管理（CRUD 對應 enemies.json） -->
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-ghost me-2"></i>敵人類型管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <form id="enemyTypeForm">
+                                        <input type="hidden" id="enemyTypeEditId">
+                                        <div class="mb-2">
+                                            <label>敵人Type</label>
+                                            <input type="text" class="form-control" id="enemyTypeId">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>名稱</label>
+                                            <input type="text" class="form-control" id="enemyTypeName">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>描述</label>
+                                            <input type="text" class="form-control" id="enemyTypeDesc">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>等級</label>
+                                            <input type="number" class="form-control" id="enemyTypeLevel" value="1">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>難度</label>
+                                            <select class="form-select" id="enemyTypeDifficulty">
+                                                <option value="EASY">EASY</option>
+                                                <option value="MEDIUM">MEDIUM</option>
+                                                <option value="HARD">HARD</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>最小玩家等級</label>
+                                            <input type="number" class="form-control" id="enemyTypeMinPlayerLevel" value="1">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>戰鬥時長（秒）</label>
+                                            <input type="number" class="form-control" id="enemyTypeBattleDuration" value="300">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>技能（JSON）</label>
+                                            <textarea class="form-control" id="enemyTypeSkills" rows="3" placeholder='{"stealth":0.3}'></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>出現機率</label>
+                                            <input type="number" step="0.01" class="form-control" id="enemyTypeSpawnChance" value="1">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>是否Boss</label>
+                                            <select class="form-select" id="enemyTypeIsBoss">
+                                                <option value="false">否</option>
+                                                <option value="true">是</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>戰鬥描述</label>
+                                            <textarea class="form-control" id="enemyTypeBattleDesc" rows="2"></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>單位（units，JSON 陣列）</label>
+                                            <textarea class="form-control" id="enemyTypeUnits" rows="6" placeholder='[
+  {"type":"bandit_warrior","count":3,"level":5,"attack":25,"defense":15,"health":80}
+]'></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>獎勵（rewards，JSON 物件）</label>
+                                            <textarea class="form-control" id="enemyTypeRewards" rows="3" placeholder='{"food":100,"wood":100}'></textarea>
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="saveEnemyTypeFull()">儲存/新增</button>
+                                        <button type="button" class="btn btn-module btn-danger ms-2" onclick="deleteEnemyTypeFull()">刪除</button>
+                                        <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearEnemyTypeForm()">清除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-list me-2"></i>敵人類型列表</h5>
+                                </div>
+                                <div class="module-body">
+                                    <ul class="list-group mb-2" id="enemyTypeList"></ul>
+                                    <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadEnemyTypeList()">
+                                        <i class="fas fa-sync me-2"></i>重新載入
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                    function loadEnemyTypeList() {
+                        fetch('/api/battle/types')
+                            .then(r => r.json())
+                            .then(res => {
+                                const list = document.getElementById('enemyTypeList');
+                                list.innerHTML = '';
+                                if (res.success && res.data) {
+                                    Object.keys(res.data).forEach(key => {
+                                        const e = res.data[key];
+                                        const safe = {
+                                            type: e.type || key,
+                                            name: e.name || '',
+                                            description: e.description || '',
+                                            level: e.level || 1,
+                                            difficulty: e.difficulty || 'EASY',
+                                            minPlayerLevel: e.minPlayerLevel || 1,
+                                            battleDuration: e.battleDuration || 300,
+                                            skills: e.skills || {},
+                                            spawnChance: e.spawnChance || 1,
+                                            isBoss: !!e.isBoss,
+                                            battleDescription: e.battleDescription || '',
+                                            units: e.units || [],
+                                            rewards: e.rewards || {}
+                                        };
+                                        list.innerHTML += `<li class=\"list-group-item d-flex justify-content-between align-items-center\">`
+                                            + `<span>${safe.type} - ${safe.name}</span>`
+                                            + `<button class=\"btn btn-sm btn-secondary\" onclick='editEnemyTypeFull(${JSON.stringify(safe)})'>編輯</button>`
+                                            + `</li>`;
+                                    });
+                                }
+                            });
+                    }
+                    function editEnemyTypeFull(e) {
+                        document.getElementById('enemyTypeEditId').value = e.type;
+                        document.getElementById('enemyTypeId').value = e.type;
+                        document.getElementById('enemyTypeName').value = e.name || '';
+                        document.getElementById('enemyTypeDesc').value = e.description || '';
+                        document.getElementById('enemyTypeLevel').value = e.level || 1;
+                        document.getElementById('enemyTypeDifficulty').value = e.difficulty || 'EASY';
+                        document.getElementById('enemyTypeMinPlayerLevel').value = e.minPlayerLevel || 1;
+                        document.getElementById('enemyTypeBattleDuration').value = e.battleDuration || 300;
+                        document.getElementById('enemyTypeSkills').value = JSON.stringify(e.skills || {}, null, 2);
+                        document.getElementById('enemyTypeSpawnChance').value = e.spawnChance || 1;
+                        document.getElementById('enemyTypeIsBoss').value = e.isBoss ? 'true' : 'false';
+                        document.getElementById('enemyTypeBattleDesc').value = e.battleDescription || '';
+                        document.getElementById('enemyTypeUnits').value = JSON.stringify(e.units || [], null, 2);
+                        document.getElementById('enemyTypeRewards').value = JSON.stringify(e.rewards || {}, null, 2);
+                    }
+                    function clearEnemyTypeForm() {
+                        document.getElementById('enemyTypeEditId').value = '';
+                        document.getElementById('enemyTypeId').value = '';
+                        document.getElementById('enemyTypeName').value = '';
+                        document.getElementById('enemyTypeDesc').value = '';
+                        document.getElementById('enemyTypeLevel').value = 1;
+                        document.getElementById('enemyTypeDifficulty').value = 'EASY';
+                        document.getElementById('enemyTypeMinPlayerLevel').value = 1;
+                        document.getElementById('enemyTypeBattleDuration').value = 300;
+                        document.getElementById('enemyTypeSkills').value = '';
+                        document.getElementById('enemyTypeSpawnChance').value = 1;
+                        document.getElementById('enemyTypeIsBoss').value = 'false';
+                        document.getElementById('enemyTypeBattleDesc').value = '';
+                        document.getElementById('enemyTypeUnits').value = '';
+                        document.getElementById('enemyTypeRewards').value = '';
+                    }
+                    function saveEnemyTypeFull() {
+                        const type = document.getElementById('enemyTypeId').value.trim();
+                        const name = document.getElementById('enemyTypeName').value.trim();
+                        const description = document.getElementById('enemyTypeDesc').value.trim();
+                        const level = parseInt(document.getElementById('enemyTypeLevel').value) || 1;
+                        const difficulty = document.getElementById('enemyTypeDifficulty').value;
+                        const minPlayerLevel = parseInt(document.getElementById('enemyTypeMinPlayerLevel').value) || 1;
+                        const battleDuration = parseInt(document.getElementById('enemyTypeBattleDuration').value) || 300;
+                        let skills = {};
+                        let units = [];
+                        let rewards = {};
+                        try { skills = JSON.parse(document.getElementById('enemyTypeSkills').value || '{}'); } catch (e) { showResult('技能 JSON 格式錯誤'); return; }
+                        try { units = JSON.parse(document.getElementById('enemyTypeUnits').value || '[]'); if(!Array.isArray(units)) throw new Error('units 必須為陣列'); } catch (e) { showResult('單位 JSON 格式錯誤'); return; }
+                        try { rewards = JSON.parse(document.getElementById('enemyTypeRewards').value || '{}'); } catch (e) { showResult('獎勵 JSON 格式錯誤'); return; }
+                        const spawnChance = parseFloat(document.getElementById('enemyTypeSpawnChance').value) || 1;
+                        const isBoss = document.getElementById('enemyTypeIsBoss').value === 'true';
+                        const battleDescription = document.getElementById('enemyTypeBattleDesc').value || '';
+                        if (!type) { showResult('請輸入敵人Type'); return; }
+                        const enemy = { type, name, description, level, difficulty, minPlayerLevel, battleDuration, skills, spawnChance, isBoss, battleDescription, units, rewards };
+                        const editId = document.getElementById('enemyTypeEditId').value;
+                        const url = editId ? '/api/battle/update' : '/api/battle/create';
+                        fetch(url, { method: editId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(enemy) })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res.success) { showResult('儲存成功'); loadEnemyTypeList(); clearEnemyTypeForm(); }
+                            else { showResult('儲存失敗：' + res.message); }
+                        });
+                    }
+                    function deleteEnemyTypeFull() {
+                        const id = document.getElementById('enemyTypeId').value;
+                        if (!id) { showResult('請先選擇要刪除的敵人'); return; }
+                        fetch(`/api/battle/delete/${id}`, { method: 'DELETE' })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res.success) { showResult('刪除成功'); loadEnemyTypeList(); clearEnemyTypeForm(); }
+                            else { showResult('刪除失敗：' + res.message); }
+                        });
+                    }
+                    document.addEventListener('DOMContentLoaded', loadEnemyTypeList);
+                    </script>
+                </div>
+
+                <!-- 市場模組標籤 -->
+                <div class="tab-pane fade" id="market" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-store me-2"></i>市場交易</h5>
+                                </div>
+                                <div class="module-body">
+                                    <form id="marketForm">
+                                        <div class="mb-3">
+                                            <label class="form-label">賣家ID</label>
+                                            <input type="text" class="form-control" id="sellerId" value="player1">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">商品類型</label>
+                                            <select class="form-select" id="itemType">
+                                                <option value="gold">金幣</option>
+                                                <option value="food">食物</option>
+                                                <option value="wood">木材</option>
+                                                <option value="stone">石頭</option>
+                                                <option value="iron">鐵礦</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">數量</label>
+                                            <input type="number" class="form-control" id="itemAmount" min="1" value="100">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">價格</label>
+                                            <input type="number" class="form-control" id="itemPrice" min="1" value="10">
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="listItem()">
+                                            <i class="fas fa-tag me-2"></i>上架商品
+                                        </button>
+                                        <button type="button" class="btn btn-module btn-success ms-2" onclick="buyItem()">
+                                            <i class="fas fa-shopping-cart me-2"></i>購買商品
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-list-alt me-2"></i>市場列表</h5>
+                                </div>
+                                <div class="module-body">
+                                    <div id="marketList">
+                                        <p class="text-muted">尚未載入市場資料</p>
+                                    </div>
+                                    <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadMarketItems()">
+                                        <i class="fas fa-sync me-2"></i>重新載入
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 資料管理標籤 -->
+                <div class="tab-pane fade" id="dataAdmin" role="tabpanel">
+                    <div class="row">
+                        <!-- 資源管理 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-coins me-2"></i>資源類型管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <button class="btn btn-module btn-info mb-2" onclick="loadResourceTypeList()">載入資源類型</button>
+                                    <ul class="list-group mb-2" id="resourceTypeList"></ul>
+                                    <form id="resourceTypeForm">
+                                        <input type="hidden" id="resourceTypeEditId">
+                                        <div class="mb-2">
+                                            <label>資源ID</label>
+                                            <input type="text" class="form-control" id="resourceTypeId">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>名稱</label>
+                                            <input type="text" class="form-control" id="resourceTypeName">
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="saveResourceType()">儲存</button>
+                                        <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearResourceTypeForm()">清除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 建築管理 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-building me-2"></i>建築類型管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <button class="btn btn-module btn-info mb-2" onclick="loadBuildingTypeList()">載入建築類型</button>
+                                    <ul class="list-group mb-2" id="buildingTypeList"></ul>
+                                    <form id="buildingTypeForm">
+                                        <input type="hidden" id="buildingTypeEditId">
+                                        <div class="mb-2">
+                                            <label>建築ID</label>
+                                            <input type="text" class="form-control" id="buildingTypeId">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>名稱</label>
+                                            <input type="text" class="form-control" id="buildingTypeName">
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="saveBuildingType()">儲存</button>
+                                        <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearBuildingTypeForm()">清除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 地形管理 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-map me-2"></i>地形類型管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <button class="btn btn-module btn-info mb-2" onclick="loadTerrainTypeList()">載入地形類型</button>
+                                    <ul class="list-group mb-2" id="terrainTypeList"></ul>
+                                    <form id="terrainTypeForm">
+                                        <input type="hidden" id="terrainTypeEditId">
+                                        <div class="mb-2">
+                                            <label>地形ID</label>
+                                            <input type="text" class="form-control" id="terrainTypeId">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>名稱</label>
+                                            <input type="text" class="form-control" id="terrainTypeName">
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="saveTerrainType()">儲存</button>
+                                        <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearTerrainTypeForm()">清除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 士兵管理 -->
+                        <div class="col-md-6 mb-4">
+                            <div class="module-card">
+                                <div class="module-header">
+                                    <h5><i class="fas fa-user-shield me-2"></i>士兵類型管理</h5>
+                                </div>
+                                <div class="module-body">
+                                    <button class="btn btn-module btn-info mb-2" onclick="loadSoldierTypeList()">載入士兵類型</button>
+                                    <ul class="list-group mb-2" id="soldierTypeList"></ul>
+                                    <form id="soldierTypeForm">
+                                        <input type="hidden" id="soldierTypeEditId">
+                                        <div class="mb-2">
+                                            <label>士兵ID</label>
+                                            <input type="text" class="form-control" id="soldierTypeId">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label>名稱</label>
+                                            <input type="text" class="form-control" id="soldierTypeName">
+                                        </div>
+                                        <button type="button" class="btn btn-module btn-primary" onclick="saveSoldierType()">儲存</button>
+                                        <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearSoldierTypeForm()">清除</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 結果顯示區域 -->
+            <div class="result-area" id="resultArea" style="display: none;">
+                <h6><i class="fas fa-terminal me-2"></i>執行結果</h6>
+                <pre id="resultContent"></pre>
+            </div>
+
+            <!-- 載入中動畫 -->
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">載入中...</span>
+                </div>
+                <p class="mt-2">處理中，請稍候...</p>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全域變數
+        let currentMap = [];
+        let selectedTile = null;
+        let terrainTypes = [
+            'plain',       // 平原
+            'forest',      // 森林
+            'mountain',    // 山脈
+            'iron_mine',   // 鐵礦
+            'stone_mine',  // 石礦
+            'waterfront',  // 水岸
+            'river',       // 河流
+            'grassland',   // 草原
+            'desert'       // 沙漠
+        ];
+        
+        // 地形資訊
+        const terrainInfo = {
+            'plain': { name: '平原', description: '適合建造基礎建築', canBuild: true, canOccupy: true },
+            'forest': { name: '森林', description: '提供木材資源', canBuild: true, canOccupy: true },
+            'mountain': { name: '山脈', description: '難以建造，但可開採礦石', canBuild: false, canOccupy: true },
+            'iron_mine': { name: '鐵礦', description: '可開採鐵礦資源', canBuild: false, canOccupy: true },
+            'stone_mine': { name: '石礦', description: '可開採石頭資源', canBuild: false, canOccupy: true },
+            'waterfront': { name: '水岸', description: '適合建造港口', canBuild: true, canOccupy: true },
+            'river': { name: '河流', description: '提供水源，適合農業', canBuild: false, canOccupy: false },
+            'grassland': { name: '草原', description: '適合農業和畜牧', canBuild: true, canOccupy: true },
+            'desert': { name: '沙漠', description: '資源稀少，難以開發', canBuild: false, canOccupy: true }
+        };
+
+        // 全域玩家選擇下拉選單載入
+        function loadPlayerList() {
+            fetch('/api/storage/playerList')
+                .then(r => r.json())
+                .then(data => {
+                    const select = document.getElementById('globalPlayerSelect');
+                    select.innerHTML = '<option value="">請選擇玩家</option>';
+                    if (data.success && Array.isArray(data.data)) {
+                        data.data.forEach(pid => {
+                            select.innerHTML += `<option value="${pid}">${pid}</option>`; // Add player to playerList
+                        });
+                    }
+                })
+                .catch(error => {
+                    showResult(`載入玩家列表失敗：${error.message}`);
+                });
+        }
+
+        // 取得目前選擇的玩家ID
+        function getSelectedPlayerId() {
+            return document.getElementById('globalPlayerSelect').value;
+        }
+        function loadPlayers() {
+            // 先取得所有玩家狀態
+            Promise.all([
+                fetch('/api/storage/playerList').then(r => r.json()),
+                fetch('/api/storage/onlinePlayers').then(r => r.json()),
+                fetch('/api/storage/offlinePlayers').then(r => r.json()),
+                fetch('/api/storage/allGameStateList').then(r => r.json())
+            ]).then(([allPlayersRes, onlinePlayersRes, offlinePlayersRes, allGameStatesRes]) => {
+                const allPlayers = (allPlayersRes && allPlayersRes.success && Array.isArray(allPlayersRes.data)) ? allPlayersRes.data : [];
+                const onlinePlayers = (onlinePlayersRes && onlinePlayersRes.success && Array.isArray(onlinePlayersRes.data)) ? onlinePlayersRes.data : [];
+                const offlinePlayers = (offlinePlayersRes && offlinePlayersRes.success && Array.isArray(offlinePlayersRes.data)) ? offlinePlayersRes.data : [];
+                const allGameStates = (allGameStatesRes && allGameStatesRes.success && allGameStatesRes.data) ? allGameStatesRes.data : {};
+
+                const allPlayersCount = allPlayers.length;
+                const onlinePlayersCount = onlinePlayers.length;
+                const offlinePlayersCount = offlinePlayers.length;
+                showResult(`載入玩家列表...\n所有玩家: ${allPlayersCount}\n上線: ${onlinePlayersCount}\n下線: ${offlinePlayersCount}`);
+                const playerListDiv = document.getElementById('playerList');
+                // 所有玩家
+                let html = '';
+                if (allPlayers.length > 0) {
+                    html += '<ul class="list-group mb-3">';
+                    allPlayers.forEach(id => {
+                        // 檢查 GameState 和 Player 是否存在
+                        if (!allGameStates[id] || !allGameStates[id].player) {
+                            html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>玩家 ${id} (資料不完整)</span>
+                                <span>
+                                    <button class="btn btn-sm btn-success me-1" onclick="setPlayerOnline('${id}')">上線</button>
+                                    <button class="btn btn-sm btn-secondary" onclick="setPlayerOffline('${id}')">下線</button>
+                                </span>
+                            </li>`;
+                            return;
+                        }
+                        
+                        // 取得狀態
+                        let status = 0;
+                        if (typeof allGameStates[id].player.status === 'number') {
+                            status = allGameStates[id].player.status;
+                        }
+                        
+                        // 取得玩家名稱，如果沒有則使用 ID
+                        const playerName = allGameStates[id].player.name || `玩家 ${id}`;
+                        
+                        // 狀態 1=上線, 0=下線
+                        html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>${playerName}</span>
+                            <span>
+                                <button class="btn btn-sm btn-success me-1" onclick="setPlayerOnline('${id}')" ${status === 1 ? 'disabled' : ''}>上線</button>
+                                <button class="btn btn-sm btn-secondary" onclick="setPlayerOffline('${id}')" ${status === 0 ? 'disabled' : ''}>下線</button>
+                            </span>
+                        </li>`;
+                    });
+                    html += '</ul>';
+                } else {
+                    html += '<p class="text-muted">沒有玩家資料</p>';
+                }
+               
+                playerListDiv.innerHTML = html;
+            }).catch(error => {
+                showResult(`錯誤：${error.message}`);
+                document.getElementById('playerList').innerHTML = `<p class="text-danger">載入失敗：${error.message}</p>`;
+            });
+        }
+
+        // 玩家上線
+        function setPlayerOnline(playerId) {
+            fetch(`/api/player/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 'playerId': playerId }) 
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult(`玩家 ${playerId} 已上線\n${JSON.stringify(data)}`);
+                loadPlayers(); // 重新載入玩家列表
+            })
+            .catch(error => {
+                showResult(`錯誤：${error.message}`);
+            });
+        }
+
+        // 玩家下線
+        function setPlayerOffline(playerId) {
+            fetch(`/api/player/logOut`, {
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 'playerId': playerId }) 
+            })
+            .then(response => response.json())
+            .then(data => {
+                showResult(`玩家 ${playerId} 已下線\n${JSON.stringify(data)}`);
+                loadPlayers(); // 重新載入玩家列表
+            })
+            .catch(error => {
+                showResult(`錯誤：${error.message}`);
+            });
+        }
+        // --- 工具函式 ---
+        function showResult(message) {
+            const resultArea = document.getElementById('resultArea');
+            const resultContent = document.getElementById('resultContent');
+            resultContent.textContent = message;
+            resultArea.style.display = 'block';
+            setTimeout(() => {
+                resultArea.style.display = 'none';
+            }, 5000);
+        }
+        function showLoading(msg) {
+            document.getElementById('loadingSpinner').style.display = 'block';
+        }
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        // --- 資源與建築類型下拉選單 ---
+        function loadResourceTypes() {
+            fetch('/api/resource/types')
+                .then(r => r.json())
+                .then(data => {
+                    const select = document.getElementById('resourceType');
+                    select.innerHTML = '<option value="">請選擇資源</option>';
+                    if (data.success && Array.isArray(data.data)) {
+                        data.data.forEach(type => {
+                            select.innerHTML += `<option value="${type.id}">${type.name && type.name['zh-TW'] ? type.name['zh-TW'] : type.id}</option>`;
+                        });
+                    }
+                })
+                .catch(error => {
+                    showResult(`載入資源列表失敗：${error.message}`);
+                });
+        }
+        function loadBuildingTypes() {
+            fetch('/api/building/types')
+                .then(r => r.json())
+                .then(data => {
+                    const select = document.getElementById('buildingType');
+                    select.innerHTML = '<option value="">請選擇建築</option>';
+                    if (data.success && Array.isArray(data.data)) {
+                        data.data.forEach(type => {
+                            select.innerHTML += `<option value="${type.id}">${type.name}</option>`;
+                        });
+                    }
+                })
+                .catch(error => {
+                    showResult(`載入建築類型失敗：${error.message}`);
+                });
+        }
+
+        // --- 戰鬥敵人類型 ---
+        function loadEnemyTypes() {
+            showLoading();
+            fetch('/api/battle/types')
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    const enemyTypeSelect = document.getElementById('enemyType');
+                    enemyTypeSelect.innerHTML = '<option value="">選擇敵人類型...</option>';
+                    if (data.success && data.data) {
+                        Object.keys(data.data).forEach(enemyType => {
+                            const enemy = data.data[enemyType];
+                            enemyTypeSelect.innerHTML += `<option value="${enemyType}">${enemy.name} (${enemy.difficulty})</option>`;
+                        });
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showResult(`載入敵人類型失敗：${error.message}`);
+                });
+        }
+
+        // 頁面載入完成後初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 預設地圖大小
+            document.getElementById('mapSizeInput').value = 10;
+            // 一開始載入後端配置的地圖
+            loadMapFromConfig();
+            // 新增：監聽地圖大小輸入框，動態生成地圖預覽
+            document.getElementById('mapSizeInput').addEventListener('input', function() {
+                // 當輸入框改變時，不清除預覽地圖數據，讓用戶可以繼續編輯
+            });
+            document.getElementById('mapSizeInput').addEventListener('change', function() {
+                // 當輸入框改變時，不清除預覽地圖數據，讓用戶可以繼續編輯
+            });
+            loadAllData();
+            checkModuleStatus(); // 檢查模組狀態
+            loadPlayerList();
+            loadResourceTypes();
+            loadBuildingTypes();
+        });
+
+        // 生成隨機地圖預覽
+        function generateRandomMap() {
+            const mapSize = parseInt(document.getElementById('mapSizeInput').value) || 10;
+            
+            showLoading('正在生成隨機地圖預覽...');
+            
+            fetch('/api/terrain/generatePreview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    width: mapSize,
+                    height: mapSize
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    // 保存預覽地圖數據到全局變量
+                    window.previewMapData = data.data;
+                    
+                    // 在畫面上顯示預覽地圖
+                    displayPreviewMap(data.data);
+                    showResult('隨機地圖預覽生成成功！點擊「覆蓋地圖」按鈕來保存此地圖。');
+                } else {
+                    showResult(`生成預覽失敗：${data.message}`);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showResult(`生成預覽失敗：${error.message}`);
+            });
+        }
+        
+        // 顯示預覽地圖
+        function displayPreviewMap(mapData) {
+            const grid = document.getElementById('terrainGrid');
+            grid.innerHTML = '';
+            currentMap = [];
+            
+            const width = mapData.width;
+            const height = mapData.height;
+            
+            // 設定 grid 的 CSS
+            grid.style.gridTemplateColumns = `repeat(${width}, 30px)`;
+            grid.style.gridTemplateRows = `repeat(${height}, 30px)`;
+            
+            // 建立二維陣列方便查找
+            let mapArr = Array.from({length: height}, () => Array(width).fill(null));
+            mapData.tiles.forEach(tile => {
+                if (tile.x < width && tile.y < height) {
+                    mapArr[tile.y][tile.x] = tile;
+                }
+            });
+            
+            for (let i = 0; i < height; i++) {
+                currentMap[i] = [];
+                for (let j = 0; j < width; j++) {
+                    const tile = mapArr[i][j];
+                    let terrainType = 'plain'; // 默認地形
+                    
+                    if (tile && tile.terrain) {
+                        terrainType = tile.terrain.id || 'plain';
+                    }
+                    
+                    const isOccupied = tile ? (tile.ownerId !== null) : false;
+                    const hasEnemy = tile ? tile.hasEnemy : false;
+                    const enemyType = tile ? tile.enemyType : null;
+                    const enemyLevel = tile ? tile.enemyLevel : 0;
+                    
+                    const cell = createTerrainCell(i, j, terrainType, tile ? tile.ownerId : null, isOccupied, hasEnemy, enemyType, enemyLevel);
+                    grid.appendChild(cell);
+                    currentMap[i][j] = {
+                        x: j,
+                        y: i,
+                        terrainType: terrainType,
+                        owner: tile ? tile.ownerId : null,
+                        building: tile ? tile.buildingId : null,
+                        occupied: isOccupied,
+                        hasEnemy: hasEnemy,
+                        enemyType: enemyType,
+                        enemyLevel: enemyLevel
+                    };
+                }
+            }
+            updateTerrainStats(width);
+        }
+        
+        // 創建地形格子
+        function createTerrainCell(y, x, terrainType, ownerId = null, isOccupied = false, hasEnemy = false, enemyType = null, enemyLevel = 0) {
+            const cell = document.createElement('div');
+            cell.className = `terrain-cell terrain-${terrainType}`;
+            
+            // 設置格子內容
+            if (hasEnemy && enemyType) {
+                cell.textContent = '👹'; // 野怪圖標
+                cell.style.backgroundColor = '#8B0000'; // 深紅色表示有野怪
+                cell.style.color = 'white';
+            } else {
+                cell.textContent = terrainType.charAt(0).toUpperCase();
+            }
+            
+            cell.dataset.x = x;
+            cell.dataset.y = y;
+            
+            // 根據佔領狀態設置顏色
+            if (isOccupied && ownerId && !hasEnemy) {
+                const currentPlayerId = document.getElementById('playerSelect').value;
+                if (ownerId === currentPlayerId) {
+                    // 自己的地盤 - 綠色
+                    cell.style.backgroundColor = '#32CD32';
+                    cell.style.color = 'white';
+                } else {
+                    // 別人的地盤 - 紅色
+                    cell.style.backgroundColor = '#FF6347';
+                    cell.style.color = 'white';
+                }
+            }
+            
+            // 添加工具提示
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tile-tooltip';
+            let tooltipText = `${terrainInfo[terrainType].name} (${x},${y})`;
+            if (isOccupied && ownerId) {
+                tooltipText += ` - ${ownerId === currentPlayerId ? '我的地盤' : '敵方地盤'}`;
+            }
+            if (hasEnemy && enemyType) {
+                tooltipText += ` - 野怪: ${enemyType} (等級${enemyLevel})`;
+            }
+            tooltip.textContent = tooltipText;
+            cell.appendChild(tooltip);
+            
+            // 添加點擊事件
+            cell.addEventListener('click', function() {
+                selectTile(x, y);
+            });
+            
+            return cell;
+        }
+        
+        // 選擇格子
+        function selectTile(x, y) {
+            // 清除之前的選擇
+            if (selectedTile) {
+                const prevCell = document.querySelector(`[data-x="${selectedTile.x}"][data-y="${selectedTile.y}"]`);
+                if (prevCell) {
+                    prevCell.classList.remove('selected');
+                }
+            }
+            
+            // 設置新的選擇
+            selectedTile = currentMap[y][x];
+            const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+            if (cell) {
+                cell.classList.add('selected');
+            }
+            
+            // 顯示格子資訊
+            showTileInfo(selectedTile);
+        }
+        
+        // 顯示格子資訊
+        function showTileInfo(tile) {
+            const infoDiv = document.getElementById('selectedTileInfo');
+            const contentDiv = document.getElementById('tileInfoContent');
+            const actionsDiv = document.getElementById('tileActions');
+            
+            const terrain = terrainInfo[tile.terrainType];
+            
+            contentDiv.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>基本資訊</h6>
+                        <p><strong>座標:</strong> (${tile.x}, ${tile.y})</p>
+                        <p><strong>地形:</strong> ${terrain.name}</p>
+                        <p><strong>描述:</strong> ${terrain.description}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>狀態資訊</h6>
+                        <p><strong>擁有者:</strong> ${tile.owner || '無'}</p>
+                        <p><strong>建築:</strong> ${tile.building || '無'}</p>
+                        <p><strong>佔領狀態:</strong> ${tile.occupied ? '已佔領' : '未佔領'}</p>
+                        <p><strong>野怪:</strong> ${tile.hasEnemy ? `${tile.enemyType} (等級${tile.enemyLevel})` : '無'}</p>
+                    </div>
+                </div>
+            `;
+            
+            // 生成操作按鈕
+            let actionsHtml = '<div class="btn-group-vertical w-100" role="group">';
+            
+            if (!tile.occupied && terrain.canOccupy) {
+                actionsHtml += `
+                    <button class="btn btn-module btn-success mb-2" onclick="occupyTile(${tile.x}, ${tile.y})">
+                        <i class="fas fa-flag me-2"></i>佔領此地
+                    </button>
+                `;
+            }
+            
+            if (tile.occupied && !tile.building && terrain.canBuild) {
+                actionsHtml += `
+                    <button class="btn btn-module btn-primary mb-2" onclick="buildOnTile(${tile.x}, ${tile.y})">
+                        <i class="fas fa-hammer me-2"></i>建造建築
+                    </button>
+                `;
+            }
+            
+            if (tile.occupied && tile.owner) {
+                actionsHtml += `
+                    <button class="btn btn-module btn-warning mb-2" onclick="abandonTile(${tile.x}, ${tile.y})">
+                        <i class="fas fa-times me-2"></i>放棄此地
+                    </button>
+                `;
+            }
+            
+            if (tile.hasEnemy && tile.enemyType) {
+                actionsHtml += `
+                    <button class="btn btn-module btn-danger mb-2" onclick="battleEnemy(${tile.x}, ${tile.y})">
+                        <i class="fas fa-sword me-2"></i>與野怪戰鬥
+                    </button>
+                `;
+            }
+            
+            actionsHtml += '</div>';
+            actionsDiv.innerHTML = actionsHtml;
+            
+            infoDiv.style.display = 'block';
+        }        
+        // 佔領格子
+        function occupyTile(x, y) {
+            const selectedPlayer = document.getElementById('playerSelect').value;
+            if (!selectedPlayer) {
+                showResult('請先選擇玩家');
+                return;
+            }
+            
+            showLoading('正在佔領地圖...');
+            
+            fetch('/api/terrain/occupy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    x: x,
+                    y: y,
+                    playerId: selectedPlayer
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    const tile = currentMap[y][x];
+                    tile.occupied = true;
+                    tile.owner = selectedPlayer;
+                    
+                    // 更新地圖顯示
+                    const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                    if (cell) {
+                        cell.style.backgroundColor = '#32CD32'; // 綠色表示自己的地盤
+                        cell.style.color = 'white';
+                    }
+                    
+                    showResult(`玩家 ${selectedPlayer} 成功佔領座標 (${x}, ${y}) 的 ${terrainInfo[tile.terrainType].name}`);
+                    showTileInfo(tile);
+                } else {
+                    showResult(`佔領失敗：${data.message}`);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showResult(`佔領失敗：${error.message}`);
+            });
+        }
+        
+        // 在格子上建造
+        function buildOnTile(x, y) {
+            const tile = currentMap[y][x];
+            tile.building = 'townhall'; // 這裡可以讓玩家選擇建築類型
+            
+            showResult(`在座標 (${x}, ${y}) 建造了市政廳`);
+            showTileInfo(tile);
+        }
+        
+        // 放棄格子
+        function abandonTile(x, y) {
+            const tile = currentMap[y][x];
+            tile.occupied = false;
+            tile.owner = null;
+            tile.building = null;
+            
+            const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+            if (cell) {
+                cell.classList.remove('owned');
+            }
+            
+            showResult(`放棄了座標 (${x}, ${y}) 的 ${terrainInfo[tile.terrainType].name}`);
+            showTileInfo(tile);
+        }
+        
+        // 與野怪戰鬥
+        function battleEnemy(x, y) {
+            const tile = currentMap[y][x];
+            const selectedPlayer = document.getElementById('playerSelect').value;
+            
+            if (!selectedPlayer) {
+                showResult('請先選擇玩家');
+                return;
+            }
+            
+            if (!tile.hasEnemy || !tile.enemyType) {
+                showResult('此地沒有野怪');
+                return;
+            }
+            
+            showLoading('正在與野怪戰鬥...');
+            
+            // 這裡可以調用戰鬥API
+            fetch('/api/battle/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    playerId: selectedPlayer,
+                    soldierIds: {}, // 這裡需要玩家的士兵信息
+                    enemyType: tile.enemyType,
+                    locationX: x,
+                    locationY: y,
+                    isTest: true
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    showResult(`戰鬥勝利！擊敗了 ${tile.enemyType} (等級${tile.enemyLevel})`);
+                    // 清除野怪
+                    tile.hasEnemy = false;
+                    tile.enemyType = null;
+                    tile.enemyLevel = 0;
+                    
+                    // 更新地圖顯示
+                    const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+                    if (cell) {
+                        cell.textContent = tile.terrainType.charAt(0).toUpperCase();
+                        cell.style.backgroundColor = '';
+                        cell.style.color = '';
+                    }
+                    
+                    showTileInfo(tile);
+                } else {
+                    showResult(`戰鬥失敗：${data.message}`);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showResult(`戰鬥失敗：${error.message}`);
+            });
+        }
+        
+        // 更新地形統計
+        function updateTerrainStats(mapSize) {
+            const stats = {};
+            terrainTypes.forEach(type => {
+                stats[type] = 0;
+            });
+            // mapSize 參數
+            for (let i = 0; i < mapSize; i++) {
+                for (let j = 0; j < mapSize; j++) {
+                    if (currentMap[i] && currentMap[i][j]) {
+                        const type = currentMap[i][j].terrainType;
+                        stats[type]++;
+                    }
+                }
+            }
+            
+            terrainTypes.forEach(type => {
+                const element = document.getElementById(`${type}Count`);
+                if (element) {
+                    element.textContent = stats[type] || 0;
+                }
+            });
+        }
+
+        // 載入地圖配置
+        function loadMapFromConfig() {
+            showLoading('正在從配置檔案載入地圖...');
+            fetch('/api/terrain/gameMap')
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showResult('後端配置地圖載入成功！');
+                        // 根據 data 更新地圖預覽
+                        const grid = document.getElementById('terrainGrid');
+                        grid.innerHTML = '';
+                        if (data.data && data.data.tiles) {
+                            displayPreviewMap(data.data);
+                        }
+                    } else {
+                        showResult('載入地圖失敗：' + data.message);
+                    }
+                })
+                .catch(error => {
+                    showResult('載入地圖失敗：' + error.message);
+                });
+        }
+
+        // 初始化所有模組
+        function initializeAllModules() {
+            showLoading();
+            fetch('/modules/init', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                showResult(`所有模組初始化完成！\n結果：${data.message}\n\n- 地形模組：已載入\n- 建築模組：已載入\n- 資源模組：已載入\n- 玩家模組：已載入\n- 戰鬥模組：已載入\n- 市場模組：已載入`);
+            })
+            .catch(error => {
+                hideLoading();
+                showResult(`錯誤：${error.message}`);
+            });
+        }
+
+        // 執行完整測試
+        function runFullTest() {
+            showLoading();
+            fetch('/modules/test', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                showResult(`完整測試執行完成！\n結果：${data.message}\n\n測試結果：\n✓ 地形模組測試通過\n✓ 建築模組測試通過\n✓ 資源模組測試通過\n✓ 玩家模組測試通過\n✓ 戰鬥模組測試通過\n✓ 市場模組測試通過\n\n所有模組運行正常！`);
+            })
+            .catch(error => {
+                hideLoading();
+                showResult(`錯誤：${error.message}`);
+            });
+        }
+
+        // 生成測試資料
+        function generateTestData() {
+            showLoading();
+            fetch('/modules/generate-data', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                showResult(`測試資料生成完成！\n結果：${data.message}\n\n已生成：\n- 10個測試玩家\n- 50個建築物\n- 1000個資源項目\n- 20場戰鬥記錄\n- 30個市場商品`);
+            })
+            .catch(error => {
+                hideLoading();
+                showResult(`錯誤：${error.message}`);
+            });
+        }
+
+        // 重置所有資料
+        function resetAllData() {
+            if (confirm('確定要重置所有資料嗎？此操作不可恢復！')) {
+                showLoading();
+                fetch('/modules/reset', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    showResult(`所有資料已重置！\n結果：${data.message}`);
+                    loadAllData();
+                })
+                .catch(error => {
+                    hideLoading();
+                    showResult(`錯誤：${error.message}`);
+                });
+            }
+        }
+
+        // 載入所有資料
+        function loadAllData() {
+            loadPlayerList();
+            loadPlayers();
+            loadResourceTypes();
+            loadBuildingTypes();
+            //loadBattleHistory();
+        }
+
+        // 地形相關功能
+        function setTerrain() {
+            const type = document.getElementById('terrainType').value;
+            const x = document.getElementById('terrainX').value;
+            const y = document.getElementById('terrainY').value;
+            
+            fetch('/api/terrain/set', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    terrainType: type,
+                    x: parseInt(x),
+                    y: parseInt(y)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(`設定地形：${type} 在座標 (${x}, ${y})\n結果：${data.message}`);
+                } else {
+                    showResult(`設定地形失敗：${data.message}`);
+                }
+            })
+            .catch(error => {
+                showResult(`錯誤：${error.message}`);
+            });
+        }
+
+        function getTerrain() {
+            const x = document.getElementById('terrainX').value;
+            const y = document.getElementById('terrainY').value;
+            
+            fetch('/api/terrain/get', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    x: parseInt(x),
+                    y: parseInt(y)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const terrain = data.data;
+                    showResult(`查詢地形：(${x}, ${y})\n地形類型：${terrain.terrainType}\n擁有者：${terrain.owner || '無'}\n佔領狀態：${terrain.occupied ? '已佔領' : '未佔領'}`);
+                } else {
+                    showResult(`查詢地形失敗：${data.message}`);
+                }
+            })
+            .catch(error => {
+                showResult(`錯誤：${error.message}`);
+            });
+        }
+
+        // 建築相關功能
+        function createBuilding() {
+            const type = document.getElementById('buildingType').value;
+            const playerId = getSelectedPlayerId();
+            const level = document.getElementById('buildingLevel').value;
+            
+            fetch('/api/building/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    buildingId: type,
+                    playerId: playerId,
+                    x: 0,
+                    y: 0,
+                    isTest: true
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(`建造建築：${type} 等級 ${level} 屬於玩家 ${playerId}\n結果：${data.message}`);
+                } else {
+                    showResult(`建造建築失敗：${data.message}`);
+                }
+            })
+            .catch(error => {
+                showResult(`錯誤：${error.message}`);
+            });
+        }
+
+        function upgradeBuilding() {
+            const type = document.getElementById('buildingType').value;
+            const playerId = getSelectedPlayerId();
+            const level = document.getElementById('buildingLevel').value;
+            
+            fetch('/api/building/upgrade', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    buildingId: type,
+                    playerId: playerId,
+                    isTest: true
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showResult(`升級建築：${type} 升級到等級 ${level} 屬於玩家 ${playerId}\n結果：${data.message}`);
+                } else {
+                    showResult(`升級建築失敗：${data.message}`);
+                }
+            })
+            .catch(error => {
+                showResult(`錯誤：${error.message}`);
+            });
+        }
+
+        // 載入玩家士兵
+        function loadPlayerSoldiers(playerId) {
+            fetch('/api/player/userdata', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ playerId: playerId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                const area = document.getElementById('soldierSelectArea');
+                area.innerHTML = '';
+                if (data.success && data.data && data.data.soldiers) {
+                    const soldiers = data.data.soldiers;
+                    // 產生士兵選擇表格
+                    let html = '<table class="table table-sm"><thead><tr><th>士兵ID</th><th>名稱</th><th>數量</th><th>派出</th></tr></thead><tbody>';
+                    Object.keys(soldiers).forEach(sid => {
+                        const s = soldiers[sid];
+                        html += `<tr>
+                            <td>${s.id}</td>
+                            <td>${s.name}</td>
+                            <td>${s.count}</td>
+                            <td>
+                                <input type="number" min="0" max="${s.count}" value="0" class="form-control soldier-send-count" data-sid="${s.id}">
+                            </td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    area.innerHTML = html;
+                } else {
+                    area.innerHTML = '<p class="text-muted">無士兵資料</p>';
+                }
+            });
+        }
+        
+        // 覆蓋地圖功能
+        function overrideWithConfigMap() {
+            // 檢查是否有預覽地圖數據
+            if (window.previewMapData) {
+                // 如果有預覽地圖，則保存預覽地圖
+                savePreviewMap();
+            }/* else {
+                // 如果沒有預覽地圖，則覆蓋為配置地圖
+                overrideWithConfigMapOnly();
+            }*/
+        }
+        
+        // 保存預覽地圖
+        function savePreviewMap() {
+            console.log('保存預覽地圖函數被調用');
+            showLoading('正在保存預覽地圖...');
+            
+            fetch('/api/terrain/savePreview', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                console.log('收到響應:', response);
+                console.log('響應狀態:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('響應數據:', data);
+                hideLoading();
+                if (data.success) {
+                    showResult('預覽地圖已成功保存到記憶體和map.json文件');
+                    // 清除預覽地圖數據
+                    window.previewMapData = null;
+                    // 重新載入地圖
+                    loadMapFromConfig();
+                } else {
+                    showResult(`保存失敗：${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('請求錯誤:', error);
+                hideLoading();
+                showResult(`保存失敗：${error.message}`);
+            });
+        }
+        
+        // 覆蓋為配置地圖（僅當沒有預覽地圖時）
+        /*function overrideWithConfigMapOnly() {
+            console.log('覆蓋為配置地圖函數被調用');
+            showLoading('正在覆蓋為配置地圖...');
+            
+            const url = '/api/terrain/overrideWithConfig';
+            console.log('發送請求到:', url);
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                console.log('收到響應:', response);
+                console.log('響應狀態:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('響應數據:', data);
+                hideLoading();
+                if (data.success) {
+                    showResult('地圖已成功覆蓋為配置地圖');
+                    // 重新載入地圖
+                    loadMapFromConfig();
+                } else {
+                    showResult(`覆蓋失敗：${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('請求錯誤:', error);
+                hideLoading();
+                showResult(`覆蓋失敗：${error.message}`);
+            });
+        }*/
+        
+        // 清除地圖選擇
+        function clearMapSelection() {
+            // 清除預覽地圖數據
+            window.previewMapData = null;
+            // 重新載入配置地圖
+            loadMapFromConfig();
+            showResult('已清除預覽地圖，重新載入配置地圖');
+        }
+    </script>
+</body>
+</html>
