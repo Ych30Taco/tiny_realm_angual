@@ -1,0 +1,181 @@
+<div class="row">
+    <div class="col-md-6">
+        <div class="module-card">
+            <div class="module-header">
+                <h5><i class="fas fa-sword me-2"></i>戰鬥管理</h5>
+            </div>
+            <div class="module-body">
+                <form id="battleForm">
+                    <!-- 玩家選擇 -->
+                    <div class="mb-3">
+                        <label class="form-label">戰鬥模組-選擇玩家</label>
+                        <!-- 直接顯示目前全域選擇的玩家 -->
+                        <select class="form-select" id="battlePlayerSelect" disabled>
+                            <option id="battlePlayerOption" value="">請選擇玩家</option>
+                        </select>
+                    </div>
+                    <!-- 士兵選擇區 -->
+                    <div class="mb-3">
+                        <label class="form-label">選擇派出士兵</label>
+                        <div id="soldierSelectArea"></div>
+                    </div>
+                    <!-- 敵人類型 -->
+                    <div class="mb-3">
+                        <label class="form-label">敵人類型</label>
+                        <select class="form-select" id="enemyType">
+                            <option value="">選擇敵人類型...</option>
+                        </select>
+                    </div>
+                    <!-- 戰鬥座標 -->
+                    <div class="mb-3">
+                        <label class="form-label">戰鬥位置X</label>
+                        <input type="number" class="form-control" id="battleLocationX" min="0" max="7" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">戰鬥位置Y</label>
+                        <input type="number" class="form-control" id="battleLocationY" min="0" max="7" value="0">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="battleIsTest">
+                            <label class="form-check-label">測試模式</label>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-module btn-danger" onclick="startBattle()">
+                        <i class="fas fa-fight me-2"></i>開始戰鬥
+                    </button>
+                    <button type="button" class="btn btn-module btn-info ms-2" onclick="loadEnemyTypes()">
+                        <i class="fas fa-sync me-2"></i>載入敵人類型
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="module-card">
+            <div class="module-header">
+                <h5><i class="fas fa-history me-2"></i>戰鬥記錄</h5>
+            </div>
+            <div class="module-body">
+                <div id="battleHistory">
+                    <p class="text-muted">尚未載入戰鬥記錄</p>
+                </div>
+                <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadBattleHistory()">
+                    <i class="fas fa-sync me-2"></i>重新載入
+                </button>
+                <button type="button" class="btn btn-module btn-warning w-100 mt-2" onclick="clearTestBattles()">
+                    <i class="fas fa-trash me-2"></i>清理測試數據
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="module-card">
+            <div class="module-header">
+                <h5><i class="fas fa-chart-bar me-2"></i>戰鬥統計</h5>
+            </div>
+            <div class="module-body">
+                <div id="battleStats">
+                    <p class="text-muted">尚未載入戰鬥統計</p>
+                </div>
+                <button type="button" class="btn btn-module btn-secondary w-100 mt-3" onclick="loadBattleStats()">
+                    <i class="fas fa-chart-line me-2"></i>載入戰鬥統計
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 敵人類型管理（CRUD 對應 enemies.json） -->
+<div class="row mt-3">
+    <div class="col-md-6">
+        <div class="module-card">
+            <div class="module-header">
+                <h5><i class="fas fa-ghost me-2"></i>敵人類型管理</h5>
+            </div>
+            <div class="module-body">
+                <form id="enemyTypeForm">
+                    <input type="hidden" id="enemyTypeEditId">
+                    <div class="mb-2">
+                        <label>敵人Type</label>
+                        <input type="text" class="form-control" id="enemyTypeId">
+                    </div>
+                    <div class="mb-2">
+                        <label>名稱</label>
+                        <input type="text" class="form-control" id="enemyTypeName">
+                    </div>
+                    <div class="mb-2">
+                        <label>描述</label>
+                        <input type="text" class="form-control" id="enemyTypeDesc">
+                    </div>
+                    <div class="mb-2">
+                        <label>等級</label>
+                        <input type="number" class="form-control" id="enemyTypeLevel" value="1">
+                    </div>
+                    <div class="mb-2">
+                        <label>難度</label>
+                        <select class="form-select" id="enemyTypeDifficulty">
+                            <option value="EASY">EASY</option>
+                            <option value="MEDIUM">MEDIUM</option>
+                            <option value="HARD">HARD</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>最小玩家等級</label>
+                        <input type="number" class="form-control" id="enemyTypeMinPlayerLevel" value="1">
+                    </div>
+                    <div class="mb-2">
+                        <label>戰鬥時長（秒）</label>
+                        <input type="number" class="form-control" id="enemyTypeBattleDuration" value="300">
+                    </div>
+                    <div class="mb-2">
+                        <label>技能（JSON）</label>
+                        <textarea class="form-control" id="enemyTypeSkills" rows="3" placeholder='{"stealth":0.3}'></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>出現機率</label>
+                        <input type="number" step="0.01" class="form-control" id="enemyTypeSpawnChance" value="1">
+                    </div>
+                    <div class="mb-2">
+                        <label>是否Boss</label>
+                        <select class="form-select" id="enemyTypeIsBoss">
+                            <option value="false">否</option>
+                            <option value="true">是</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>戰鬥描述</label>
+                        <textarea class="form-control" id="enemyTypeBattleDesc" rows="2"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>單位（units，JSON 陣列）</label>
+                        <textarea class="form-control" id="enemyTypeUnits" rows="6" placeholder='[
+{"type":"bandit_warrior","count":3,"level":5,"attack":25,"defense":15,"health":80}
+]'></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>獎勵（rewards，JSON 物件）</label>
+                        <textarea class="form-control" id="enemyTypeRewards" rows="3" placeholder='{"food":100,"wood":100}'></textarea>
+                    </div>
+                    <button type="button" class="btn btn-module btn-primary" onclick="saveEnemyTypeFull()">儲存/新增</button>
+                    <button type="button" class="btn btn-module btn-danger ms-2" onclick="deleteEnemyTypeFull()">刪除</button>
+                    <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearEnemyTypeForm()">清除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="module-card">
+            <div class="module-header">
+                <h5><i class="fas fa-list me-2"></i>敵人類型列表</h5>
+            </div>
+            <div class="module-body">
+                <ul class="list-group mb-2" id="enemyTypeList"></ul>
+                <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadEnemyTypeList()">
+                    <i class="fas fa-sync me-2"></i>重新載入
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

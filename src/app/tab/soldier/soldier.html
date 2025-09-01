@@ -1,0 +1,77 @@
+<div class="row">
+    <div class="col-md-6">
+        <div class="module-card">
+            <div class="module-header">
+                <h5><i class="fas fa-user-shield me-2"></i>士兵類型管理</h5>
+            </div>
+            <div class="module-body">
+                <form id="soldierTypeFullForm">
+                    <input type="hidden" id="soldierTypeFullEditId">
+                    <div class="mb-2">
+                        <label>士兵ID</label>
+                        <input type="text" class="form-control" id="soldierTypeFullId">
+                    </div>
+                    <div class="mb-2">
+                        <label>名稱</label>
+                        <input type="text" class="form-control" id="soldierTypeFullName">
+                    </div>
+                    <div class="mb-2">
+                        <label>類型</label>
+                        <select class="form-select" id="soldierTypeFullType">
+                            <option value="INFANTRY">INFANTRY</option>
+                            <option value="ARCHER">ARCHER</option>
+                            <option value="CAVALRY">CAVALRY</option>
+                            <option value="SIEGE">SIEGE</option>
+                            <option value="MAGE">MAGE</option>
+                            <option value="DEFENDER">DEFENDER</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>描述</label>
+                        <input type="text" class="form-control" id="soldierTypeFullDesc">
+                    </div>
+                    <div class="mb-2">
+                        <label>站位</label>
+                        <select class="form-select" id="soldierTypeFullFormation">
+                            <option value="FRONT">FRONT</option>
+                            <option value="MIDDLE">MIDDLE</option>
+                            <option value="BACK">BACK</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label>需求建築（requirements，JSON 物件）</label>
+                        <textarea class="form-control" id="soldierTypeFullReq" rows="3" placeholder='{"mainHall":1}'></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>需求科技（requiredTech，JSON 物件）</label>
+                        <textarea class="form-control" id="soldierTypeFullTech" rows="3" placeholder='{}'></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>技能（skills，JSON 物件）</label>
+                        <textarea class="form-control" id="soldierTypeFullSkills" rows="3" placeholder='{}'></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>屬性（stats，JSON 物件）</label>
+                        <textarea class="form-control" id="soldierTypeFullStats" rows="8" placeholder='{"cost":{"food":100,"wood":100},"attack":10,"defense":8,"hp":50,"speed":3,"range":1,"trainingTime":120}'></textarea>
+                    </div>
+                    <button type="button" class="btn btn-module btn-primary" onclick="saveSoldierTypeFull()">儲存/新增</button>
+                    <button type="button" class="btn btn-module btn-danger ms-2" onclick="deleteSoldierTypeFull()">刪除</button>
+                    <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearSoldierTypeFullForm()">清除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="module-card">
+            <div class="module-header">
+                <h5><i class="fas fa-list me-2"></i>士兵類型列表</h5>
+            </div>
+            <div class="module-body">
+                <ul class="list-group mb-2" id="soldierTypeFullList"></ul>
+                <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadSoldierTypeFullList()">
+                    <i class="fas fa-sync me-2"></i>重新載入
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
