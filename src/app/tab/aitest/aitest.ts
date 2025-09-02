@@ -1,19 +1,23 @@
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-aitest',
-  templateUrl: './aitest.component.html',
-  styleUrls: ['./aitest.component.css']
+  standalone: true,
+  imports: [FormsModule, CommonModule, HttpClientModule],  // 添加 HttpClientModule
+  templateUrl: './aitest.html',
+  styleUrls: ['./aitest.css']
 })
-export class AitestComponent {
+export class Aitest {
   messages: { role: 'user' | 'ai', text: string }[] = [];
   userInput: string = '';
   loading: boolean = false;
 
   // 請將 YOUR_GEMINI_API_KEY 換成你的 API KEY
   private apiKey = 'AIzaSyBqsQg_scpAbqeO42koyk6gI6mHZBSI2sQ';
-  private apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=' + this.apiKey;
+  private apiUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=' + this.apiKey;
 
   constructor(private http: HttpClient) {}
 
@@ -36,7 +40,8 @@ export class AitestComponent {
         this.messages.push({ role: 'ai', text: aiText });
         this.loading = false;
       },
-      error: () => {
+      error: (error) => {  // 修改這裡
+        console.error('AI 回應失敗:', error);  // 顯示詳細錯誤
         this.messages.push({ role: 'ai', text: 'AI 回應失敗，請稍後再試。' });
         this.loading = false;
       }

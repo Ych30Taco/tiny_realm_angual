@@ -5,11 +5,12 @@ import { Player } from './tab/player/player';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Aitest } from './tab/aitest/aitest';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Main, Player, FormsModule, CommonModule],
+  imports: [RouterOutlet, Main, Player, FormsModule, CommonModule, Aitest],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

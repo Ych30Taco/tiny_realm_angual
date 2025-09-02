@@ -7,6 +7,7 @@ import { Soldier } from './tab/soldier/soldier';
 import { TerrainMap } from './tab/terrain-map/terrain-map';
 import { Battle } from './tab/battle/battle';
 import { DataAdmin } from './tab/data-admin/data-admin';
+import { Aitest } from './tab/aitest/aitest';
 
 
 export const routes: Routes = [
@@ -41,6 +42,10 @@ export const routes: Routes = [
   {
     path: 'dataAdmin',
     component: DataAdmin
+  },
+  {
+    path: 'aitest',
+    component: Aitest
   },
   {
     path: '',
