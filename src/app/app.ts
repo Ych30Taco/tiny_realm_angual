@@ -3,10 +3,13 @@ import { RouterOutlet } from '@angular/router';
 import { Main } from './tab/main/main';
 import { Player } from './tab/player/player';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Main, Player],
+  standalone: true,
+  imports: [RouterOutlet, Main, Player, FormsModule, CommonModule],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
