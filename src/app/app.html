@@ -1,49 +1,67 @@
-<ul class="nav nav-tabs mb-4" id="moduleTabs" role="tablist">
-  <li class="nav-item" role="presentation">
-      <button class="nav-link active" routerLink="/main" role="tab" (click)="onTabClick('main')">
-          <i class="fas fa-tachometer-alt me-2"></i>總覽
-      </button>
-  </li>
-  <li class="nav-item" role="presentation">
-      <button class="nav-link" routerLink="/player" role="tab" (click)="onTabClick('player')">
-          <i class="fas fa-user me-2"></i>玩家模組
-      </button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link" routerLink="/resource" role="tab" (click)="onTabClick('resource')">
-        <i class="fas fa-coins me-2"></i>資源模組
-    </button>
-</li>
-<li class="nav-item" role="presentation">
-    <button class="nav-link" routerLink="/building" role="tab" (click)="onTabClick('building')">
-        <i class="fas fa-building me-2"></i>建築模組
-    </button>
-</li>
-<li class="nav-item" role="presentation">
-    <button class="nav-link" routerLink="/soldier" role="tab" (click)="onTabClick('soldier')">
-        <i class="fas fa-user-shield me-2"></i>士兵模組
-    </button>
-</li>
-<li class="nav-item" role="presentation">
-    <button class="nav-link" routerLink="/terrainMap" role="tab" (click)="onTabClick('terrainMap')">
-        <i class="fas fa-map me-2"></i>地形地圖模組
-    </button>
-</li>
-<li class="nav-item" role="presentation">
-    <button class="nav-link" routerLink="/battle" role="tab" (click)="onTabClick('battle')">
-        <i class="fas fa-fist-raised me-2"></i>戰鬥模組
-    </button>
-</li>
-<li class="nav-item" role="presentation">
-    <button class="nav-link" routerLink="/dataAdmin" role="tab" (click)="onTabClick('dataAdmin')">
-        <i class="fas fa-database me-2"></i>資料管理
-    </button>
-</li>
-<li class="nav-item" role="presentation">
-    <button class="nav-link" routerLink="/aitest" role="tab" (click)="onTabClick('aitest')">
-        <i class="fas fa-robot me-2"></i>AI Test
-    </button>
-</li>
-</ul>
-
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>TinyRealm 模組測試平台</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="app.css" rel="stylesheet">
+</head>
+<body>
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-primary">
+            <i class="fas fa-gamepad me-3"></i>
+            TinyRealm 模組測試平台
+        </h1>
+        <p class="lead text-muted">測試與展示所有模組功能</p>
+    </div>
+    <ul class="nav nav-tabs mb-4" id="moduleTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" routerLink="/main" role="tab" (click)="onTabClick('main')">
+            <i class="fas fa-tachometer-alt me-2"></i>總覽
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" routerLink="/player" role="tab" (click)="onTabClick('player')">
+            <i class="fas fa-user me-2"></i>玩家模組
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" routerLink="/resource" role="tab" (click)="onTabClick('resource')">
+            <i class="fas fa-coins me-2"></i>資源模組
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" routerLink="/building" role="tab" (click)="onTabClick('building')">
+            <i class="fas fa-building me-2"></i>建築模組
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" routerLink="/soldier" role="tab" (click)="onTabClick('soldier')">
+            <i class="fas fa-user-shield me-2"></i>士兵模組
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" routerLink="/terrainMap" role="tab" (click)="onTabClick('terrainMap')">
+            <i class="fas fa-map me-2"></i>地形地圖模組
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" routerLink="/battle" role="tab" (click)="onTabClick('battle')">
+            <i class="fas fa-fist-raised me-2"></i>戰鬥模組
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" routerLink="/dataAdmin" role="tab" (click)="onTabClick('dataAdmin')">
+            <i class="fas fa-database me-2"></i>資料管理
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" routerLink="/aitest" role="tab" (click)="onTabClick('aitest')">
+            <i class="fas fa-robot me-2"></i>AI Test
+        </button>
+    </li>
+    </ul>
+</body>
 <router-outlet></router-outlet>
