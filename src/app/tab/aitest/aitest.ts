@@ -17,7 +17,7 @@ export class Aitest {
 
   // 請將 YOUR_GEMINI_API_KEY 換成你的 API KEY
   private apiKey = 'AIzaSyBqsQg_scpAbqeO42koyk6gI6mHZBSI2sQ';
-  private apiUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=' + this.apiKey;
+  private apiUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-lite:generateContent?key=' + this.apiKey;
 
   constructor(private http: HttpClient) {}
 
