@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-aitest',
   standalone: true,
-  imports: [FormsModule, CommonModule, HttpClientModule],  // 添加 HttpClientModule
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './aitest.html',
   styleUrls: ['./aitest.css']
 })

@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-main',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './main.html',
-  styleUrl: './main.css'
+  styleUrls: ['./main.css']
 })
 export class Main {
 

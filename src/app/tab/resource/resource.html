@@ -6,80 +6,81 @@
             </div>
             <div class="module-body">
                 <form id="resourceTypeFullForm">
-                    <input type="hidden" id="resourceTypeEditId">
+                    <input type="hidden" [(ngModel)]="resourceForm.editId" name="editId">
                     <div class="mb-2">
                         <label>資源ID</label>
-                        <input type="text" class="form-control" id="resourceTypeId">
+                        <input type="text" class="form-control" [(ngModel)]="resourceForm.id" name="id">
                     </div>
                     <div class="mb-2">
                         <label>名稱 (中文)</label>
-                        <input type="text" class="form-control" id="resourceTypeNameZh">
+                        <input type="text" class="form-control" [(ngModel)]="resourceForm.nameZh" name="nameZh">
                     </div>
                     <div class="mb-2">
                         <label>名稱 (英文)</label>
-                        <input type="text" class="form-control" id="resourceTypeNameEn">
+                        <input type="text" class="form-control" [(ngModel)]="resourceForm.nameEn" name="nameEn">
                     </div>
                     <div class="mb-2">
                         <label>描述 (中文)</label>
-                        <input type="text" class="form-control" id="resourceTypeDescZh">
+                        <input type="text" class="form-control" [(ngModel)]="resourceForm.descZh" name="descZh">
                     </div>
                     <div class="mb-2">
-                        <label>描述 (英文)</label>
-                        <input type="text" class="form-control" id="resourceTypeDescEn">
+                        <label>描述</label>
+                        <input type="text" class="form-control" [(ngModel)]="resourceForm.desc" name="desc">
                     </div>
                     <div class="mb-2">
                         <label>圖示URL</label>
-                        <input type="text" class="form-control" id="resourceTypeIconURL">
+                        <input type="text" class="form-control" [(ngModel)]="resourceForm.iconURL" name="iconURL">
                     </div>
                     <div class="mb-2">
                         <label>Premium</label>
-                        <select class="form-select" id="resourceTypePremium">
-                            <option value="false">否</option>
-                            <option value="true">是</option>
+                        <select class="form-select" [(ngModel)]="resourceForm.premium" name="premium">
+                            <option [ngValue]="false">否</option>
+                            <option [ngValue]="true">是</option>
                         </select>
                     </div>
                     <div class="mb-2">
                         <label>Stackable</label>
-                        <select class="form-select" id="resourceTypeStackable">
-                            <option value="true">可堆疊</option>
-                            <option value="false">不可堆疊</option>
+                        <select class="form-select" [(ngModel)]="resourceForm.stackable" name="stackable">
+                            <option [ngValue]="true">可堆疊</option>
+                            <option [ngValue]="false">不可堆疊</option>
                         </select>
                     </div>
                     <div class="mb-2">
                         <label>分類</label>
-                        <input type="text" class="form-control" id="resourceTypeCategory">
+                        <input type="text" class="form-control" [(ngModel)]="resourceForm.category" name="category">
                     </div>
                     <div class="mb-2">
                         <label>排序</label>
-                        <input type="number" class="form-control" id="resourceTypeSortOrder">
+                        <input type="number" class="form-control" [(ngModel)]="resourceForm.sortOrder" name="sortOrder">
                     </div>
                     <div class="mb-2">
                         <label>基礎產量</label>
-                        <input type="number" class="form-control" id="resourceTypeBaseProductionRate">
+                        <input type="number" class="form-control" [(ngModel)]="resourceForm.baseProductionRate" name="baseProductionRate">
                     </div>
                     <div class="mb-2">
                         <label>初始數量</label>
-                        <input type="number" class="form-control" id="resourceTypeNowAmount">
+                        <input type="number" class="form-control" [(ngModel)]="resourceForm.nowAmount" name="nowAmount">
                     </div>
                     <div class="mb-2">
                         <label>最大數量</label>
-                        <input type="number" class="form-control" id="resourceTypeMaxAmount">
+                        <input type="number" class="form-control" [(ngModel)]="resourceForm.maxAmount" name="maxAmount">
                     </div>
                     <div class="mb-2">
                         <label>保護倉庫百分比</label>
-                        <input type="number" step="0.01" class="form-control" id="resourceTypeProtectedStoragePercentage">
+                        <input type="number" step="0.01" class="form-control" [(ngModel)]="resourceForm.protectedStoragePercentage" name="protectedStoragePercentage">
                     </div>
                     <div class="mb-2">
                         <label>保護倉庫最大量</label>
-                        <input type="number" class="form-control" id="resourceTypeProtectedStorageMaxAmount">
+                        <input type="number" class="form-control" [(ngModel)]="resourceForm.protectedStorageMaxAmount" name="protectedStorageMaxAmount">
                     </div>
                     <div class="mb-2">
                         <label>取得方式 (逗號分隔)</label>
-                        <input type="text" class="form-control" id="resourceTypeAcquisitionMethods">
+                        <input type="text" class="form-control" [(ngModel)]="resourceForm.acquisitionMethods" name="acquisitionMethods">
                     </div>
-                    <button type="button" class="btn btn-module btn-primary" onclick="saveResourceTypeFull()">儲存/新增</button>
-                    <button type="button" class="btn btn-module btn-danger ms-2" onclick="deleteResourceTypeFull()">刪除</button>
-                    <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearResourceTypeFullForm()">清除</button>
+                    <button *ngIf="!resourceForm.editId" type="button" class="btn btn-module btn-primary" (click)="saveResourceTypeFull(false)">新增</button>
+                    <button *ngIf="resourceForm.editId" type="button" class="btn btn-module btn-success" (click)="saveResourceTypeFull(true)">更新</button>
+                    <button type="button" class="btn btn-module btn-danger ms-2" (click)="deleteResourceTypeFull()">刪除</button>
+                    <button type="button" class="btn btn-module btn-secondary ms-2" (click)="clearResourceTypeFullForm()">清除</button>
                 </form>
             </div>
         </div>
@@ -90,10 +91,16 @@
                 <h5><i class="fas fa-list me-2"></i>資源類型列表</h5>
             </div>
             <div class="module-body">
-                <ul class="list-group mb-2" id="resourceTypeFullList"></ul>
-                <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadResourceTypeFullList()">
+                <ul class="list-group mb-2" id="resourceTypeFullList">
+                    <li *ngFor="let type of resourceTypes" class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ type.id }} - {{ type.name['zh-TW'] }}</span>
+                        <button class="btn btn-sm btn-secondary" (click)="editResourceTypeFull(type)">編輯</button>
+                    </li>
+                </ul>
+                <button type="button" class="btn btn-module btn-info w-100 mt-3" (click)="loadResourceTypeFullList()">
                     <i class="fas fa-sync me-2"></i>重新載入
                 </button>
+                <div *ngIf="resultMsg" class="alert alert-info mt-2">{{ resultMsg }}</div>
             </div>
         </div>
     </div>
