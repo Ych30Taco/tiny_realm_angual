@@ -7,8 +7,18 @@
             </div>
             <div class="module-body">
                 <div class="map-preview">
-                    <div class="terrain-grid" id="terrainGrid">
-                        <!-- 地形格子將由JavaScript動態生成 -->
+                    <!-- 地圖格子顯示 -->
+                    <div class="terrain-grid" [style.gridTemplateColumns]="'repeat(' + (currentMap[0]?.length || 0) + ', 30px)'" [style.gridTemplateRows]="'repeat(' + currentMap.length + ', 30px)'">
+                      <div *ngFor="let row of currentMap; let y = index">
+                        <div *ngFor="let cell of row; let x = index"
+                             class="terrain-cell"
+                             [ngClass]="'terrain-' + (cell?.terrainType || 'plain')"
+                             [class.selected]="selectedTile && selectedTile.x === x && selectedTile.y === y"
+                             (click)="selectTile(x, y)">
+                          <span *ngIf="cell?.hasEnemy && cell?.enemyType">👹</span>
+                          <span *ngIf="!(cell?.hasEnemy && cell?.enemyType)">{{ cell?.terrainType?.charAt(0) | uppercase }}</span>
+                        </div>
+                      </div>
                     </div>
                 </div>
                 <div class="text-center mt-3">
@@ -16,13 +26,13 @@
                         <span class="input-group-text">地圖大小</span>
                         <input type="number" class="form-control" id="mapSizeInput" min="5" max="100" value="10">
                     </div>
-                    <button class="btn btn-module btn-info" onclick="generateRandomMap()">
+                    <button class="btn btn-module btn-info" (click)="generateRandomMap()">
                         <i class="fas fa-random me-2"></i>生成隨機地圖預覽
                     </button>
-                    <button class="btn btn-module btn-secondary ms-2" onclick="loadMapFromConfig()">
+                    <button class="btn btn-module btn-secondary ms-2" (click)="loadMapFromConfig()">
                         <i class="fas fa-file-import me-2"></i>載入配置地圖
                     </button>
-                    <button class="btn btn-module btn-warning ms-2" onclick="overrideWithConfigMap()">
+                    <button class="btn btn-module btn-warning ms-2" (click)="overrideWithConfigMap()">
                         <i class="fas fa-save me-2"></i>覆蓋地圖
                     </button>
                 </div>

@@ -7,11 +7,12 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Aitest } from './tab/aitest/aitest';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Main, Player,Resource, FormsModule, CommonModule, Aitest],
+  imports: [RouterOutlet, Main, Player, Resource, FormsModule, CommonModule, Aitest, ReactiveFormsModule],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

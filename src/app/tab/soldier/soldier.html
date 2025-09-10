@@ -5,19 +5,17 @@
                 <h5><i class="fas fa-user-shield me-2"></i>士兵類型管理</h5>
             </div>
             <div class="module-body">
-                <form id="soldierTypeFullForm">
-                    <input type="hidden" id="soldierTypeFullEditId">
                     <div class="mb-2">
                         <label>士兵ID</label>
-                        <input type="text" class="form-control" id="soldierTypeFullId">
+                        <input type="text" class="form-control" [(ngModel)]="soldier.id" name="soldierId">
                     </div>
                     <div class="mb-2">
                         <label>名稱</label>
-                        <input type="text" class="form-control" id="soldierTypeFullName">
+                        <input type="text" class="form-control" [(ngModel)]="soldier.name" name="soldierName">
                     </div>
                     <div class="mb-2">
                         <label>類型</label>
-                        <select class="form-select" id="soldierTypeFullType">
+                        <select class="form-select" [(ngModel)]="soldier.type" name="soldierType">
                             <option value="INFANTRY">INFANTRY</option>
                             <option value="ARCHER">ARCHER</option>
                             <option value="CAVALRY">CAVALRY</option>
@@ -28,11 +26,11 @@
                     </div>
                     <div class="mb-2">
                         <label>描述</label>
-                        <input type="text" class="form-control" id="soldierTypeFullDesc">
+                        <input type="text" class="form-control" [(ngModel)]="soldier.description" name="soldierDescription">
                     </div>
                     <div class="mb-2">
                         <label>站位</label>
-                        <select class="form-select" id="soldierTypeFullFormation">
+                        <select class="form-select" [(ngModel)]="soldier.formationPosition" name="soldierFormationPosition">
                             <option value="FRONT">FRONT</option>
                             <option value="MIDDLE">MIDDLE</option>
                             <option value="BACK">BACK</option>
@@ -40,24 +38,23 @@
                     </div>
                     <div class="mb-2">
                         <label>需求建築（requirements，JSON 物件）</label>
-                        <textarea class="form-control" id="soldierTypeFullReq" rows="3" placeholder='{"mainHall":1}'></textarea>
+                        <textarea class="form-control" [(ngModel)]="soldier.requirements" name="soldierRequirements" rows="3" placeholder='{"mainHall":1}'></textarea>
                     </div>
                     <div class="mb-2">
                         <label>需求科技（requiredTech，JSON 物件）</label>
-                        <textarea class="form-control" id="soldierTypeFullTech" rows="3" placeholder='{}'></textarea>
+                        <textarea class="form-control" [(ngModel)]="soldier.requiredTech" name="soldierRequiredTech" rows="3" placeholder='{}'></textarea>
                     </div>
                     <div class="mb-2">
                         <label>技能（skills，JSON 物件）</label>
-                        <textarea class="form-control" id="soldierTypeFullSkills" rows="3" placeholder='{}'></textarea>
+                        <textarea class="form-control" [(ngModel)]="soldier.skills" name="soldierSkills" rows="3" placeholder='{}'></textarea>
                     </div>
                     <div class="mb-2">
                         <label>屬性（stats，JSON 物件）</label>
-                        <textarea class="form-control" id="soldierTypeFullStats" rows="8" placeholder='{"cost":{"food":100,"wood":100},"attack":10,"defense":8,"hp":50,"speed":3,"range":1,"trainingTime":120}'></textarea>
+                        <textarea class="form-control" [(ngModel)]="soldier.stats" name="soldierStats" rows="8" placeholder='{"cost":{"food":100,"wood":100},"attack":10,"defense":8,"hp":50,"speed":3,"range":1,"trainingTime":120}'></textarea>
                     </div>
-                    <button type="button" class="btn btn-module btn-primary" onclick="saveSoldierTypeFull()">儲存/新增</button>
-                    <button type="button" class="btn btn-module btn-danger ms-2" onclick="deleteSoldierTypeFull()">刪除</button>
-                    <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearSoldierTypeFullForm()">清除</button>
-                </form>
+                    <button type="button" class="btn btn-module btn-primary" (click)="saveSoldierTypeFull()">儲存/新增</button>
+                    <button type="button" class="btn btn-module btn-danger ms-2" (click)="deleteSoldierTypeFull()">刪除</button>
+                    <button type="button" class="btn btn-module btn-secondary ms-2" (click)="clearSoldierTypeFullForm()">清除</button>
             </div>
         </div>
     </div>
@@ -67,8 +64,13 @@
                 <h5><i class="fas fa-list me-2"></i>士兵類型列表</h5>
             </div>
             <div class="module-body">
-                <ul class="list-group mb-2" id="soldierTypeFullList"></ul>
-                <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadSoldierTypeFullList()">
+                <ul class="list-group mb-2">
+                    <li *ngFor="let soldier of soldierList" class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ soldier.id }} - {{ soldier.name }}</span>
+                        <button class="btn btn-sm btn-secondary" (click)="editSoldierTypeFull(soldier)">編輯</button>
+                    </li>
+                </ul>
+                <button type="button" class="btn btn-module btn-info w-100 mt-3" (click)="loadSoldierTypeFullList()">
                     <i class="fas fa-sync me-2"></i>重新載入
                 </button>
             </div>

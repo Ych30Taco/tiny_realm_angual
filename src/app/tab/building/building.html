@@ -5,19 +5,19 @@
                 <h5><i class="fas fa-cubes me-2"></i>建築類型管理</h5>
             </div>
             <div class="module-body">
-                <form id="buildingTypeFullForm">
-                    <input type="hidden" id="buildingTypeEditId">
+                <form (ngSubmit)="saveBuildingTypeFull()" #buildingTypeFullForm="ngForm">
+                    <input type="hidden" [(ngModel)]="buildingTypeEditId" name="buildingTypeEditId">
                     <div class="mb-2">
                         <label>建築ID</label>
-                        <input type="text" class="form-control" id="buildingTypeId">
+                        <input type="text" class="form-control" [(ngModel)]="buildingType.id" name="buildingTypeId" required>
                     </div>
                     <div class="mb-2">
                         <label>名稱</label>
-                        <input type="text" class="form-control" id="buildingTypeName">
+                        <input type="text" class="form-control" [(ngModel)]="buildingType.name" name="buildingTypeName" required>
                     </div>
                     <div class="mb-2">
                         <label>類型</label>
-                        <select class="form-select" id="buildingTypeType">
+                        <select class="form-select" [(ngModel)]="buildingType.type" name="buildingTypeType">
                             <option value="function">function</option>
                             <option value="resource">resource</option>
                             <option value="military">military</option>
@@ -26,32 +26,30 @@
                     </div>
                     <div class="mb-2">
                         <label>資源類型（如需：FOOD / WOOD / IRON / STONE）</label>
-                        <input type="text" class="form-control" id="buildingTypeResourceType" placeholder="可留空">
+                        <input type="text" class="form-control" [(ngModel)]="buildingType.resourceType" name="buildingTypeResourceType" placeholder="可留空">
                     </div>
                     <div class="mb-2">
                         <label>最大數量</label>
-                        <input type="number" class="form-control" id="buildingTypeMaxCount" min="1" value="1">
+                        <input type="number" class="form-control" [(ngModel)]="buildingType.maxCount" name="buildingTypeMaxCount" min="1">
                     </div>
                     <div class="mb-2">
                         <label>允許地形（以逗號分隔）</label>
-                        <input type="text" class="form-control" id="buildingTypeAllowedTerrains" placeholder="plain,grassland,forest,...">
+                        <input type="text" class="form-control" [(ngModel)]="buildingType.allowedTerrains" name="buildingTypeAllowedTerrains" placeholder="plain,grassland,forest,...">
                     </div>
                     <div class="mb-2">
                         <label>等級資料（levels，JSON 陣列）</label>
-                        <textarea class="form-control" id="buildingTypeLevels" rows="8" placeholder='[
-                        {
+                        <textarea class="form-control" [(ngModel)]="buildingType.levels" name="buildingTypeLevels" rows="8" placeholder='[{
                             "level": 1,
                             "buildTime": 60000,
                             "cost": { "FOOD": 0, "WOOD": 0, "IRON": 0, "STONE": 0 },
                             "output": {},
                             "prerequisites": {},
                             "productionRate": 0
-                        }
-                        ]'></textarea>
+                        }]'></textarea>
                     </div>
-                    <button type="button" class="btn btn-module btn-primary" onclick="saveBuildingTypeFull()">儲存/新增</button>
-                    <button type="button" class="btn btn-module btn-danger ms-2" onclick="deleteBuildingTypeFull()">刪除</button>
-                    <button type="button" class="btn btn-module btn-secondary ms-2" onclick="clearBuildingTypeFullForm()">清除</button>
+                    <button type="submit" class="btn btn-module btn-primary">儲存/新增</button>
+                    <button type="button" class="btn btn-module btn-danger ms-2" (click)="deleteBuildingTypeFull()">刪除</button>
+                    <button type="button" class="btn btn-module btn-secondary ms-2" (click)="clearBuildingTypeFullForm()">清除</button>
                 </form>
             </div>
         </div>
@@ -62,8 +60,13 @@
                 <h5><i class="fas fa-list me-2"></i>建築類型列表</h5>
             </div>
             <div class="module-body">
-                <ul class="list-group mb-2" id="buildingTypeFullList"></ul>
-                <button type="button" class="btn btn-module btn-info w-100 mt-3" onclick="loadBuildingTypeFullList()">
+                <ul class="list-group mb-2">
+                    <li *ngFor="let type of buildingTypeList" class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ type.id }} - {{ type.name }}</span>
+                        <button class="btn btn-sm btn-secondary" (click)="editBuildingTypeFull(type)">編輯</button>
+                    </li>
+                </ul>
+                <button type="button" class="btn btn-module btn-info w-100 mt-3" (click)="loadBuildingTypeFullList()">
                     <i class="fas fa-sync me-2"></i>重新載入
                 </button>
             </div>
