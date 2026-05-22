@@ -15,12 +15,49 @@ export class TerrainMap implements OnInit {
   terrainTypes: string[] = [];
   terrainInfo: any = {};
   playerSelect: string = '';
+  players: any[] = [];
+  playerResources: any = null;
   stats: any = {};
   resultMsg: string = '';
   previewMapData: any = null;
 
   ngOnInit(): void {
     this.generateRandomMap();
+    this.loadPlayers();
+  }
+
+  loadPlayers(): void {
+    fetch('http://localhost:1026/api/storage/allGameStateList')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data) {
+          this.players = Object.entries(data.data).map(([id, state]: [string, any]) => ({
+            id,
+            name: state?.player?.name || id
+          }));
+        }
+      })
+      .catch(() => {});
+  }
+
+  onPlayerChange(): void {
+    if (this.playerSelect) {
+      this.loadPlayerResources();
+    } else {
+      this.playerResources = null;
+    }
+  }
+
+  loadPlayerResources(): void {
+    if (!this.playerSelect) return;
+    fetch(`http://localhost:1026/api/storage/gameState/${this.playerSelect}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data?.resources) {
+          this.playerResources = data.data.resources;
+        }
+      })
+      .catch(() => {});
   }
 
   generateRandomMap(): void {
@@ -81,7 +118,7 @@ export class TerrainMap implements OnInit {
   }
 
   selectTile(x: number, y: number): void {
-    this.selectedTile = this.currentMap[y][x];
+    this.selectedTile = { ...this.currentMap[y][x] };
   }
 
   occupyTile(x: number, y: number): void {
@@ -100,8 +137,9 @@ export class TerrainMap implements OnInit {
         const tile = this.currentMap[y][x];
         tile.occupied = true;
         tile.owner = this.playerSelect;
-        this.showResult(`玩家 ${this.playerSelect} 成功佔領座標 (${x}, ${y}) 的 ${this.terrainInfo[tile.terrainType]?.name}`);
-        this.showTileInfo(tile);
+        this.selectedTile = { ...tile };
+        this.showResult(`成功佔領座標 (${x}, ${y})`);
+        this.loadPlayerResources();
       } else {
         this.showResult(`佔領失敗：${data.message}`);
       }
@@ -109,22 +147,6 @@ export class TerrainMap implements OnInit {
     .catch(error => {
       this.showResult(`佔領失敗：${error.message}`);
     });
-  }
-
-  buildOnTile(x: number, y: number): void {
-    const tile = this.currentMap[y][x];
-    tile.building = 'townhall';
-    this.showResult(`在座標 (${x}, ${y}) 建造了市政廳`);
-    this.showTileInfo(tile);
-  }
-
-  abandonTile(x: number, y: number): void {
-    const tile = this.currentMap[y][x];
-    tile.occupied = false;
-    tile.owner = null;
-    tile.building = null;
-    this.showResult(`放棄了座標 (${x}, ${y}) 的 ${this.terrainInfo[tile.terrainType]?.name}`);
-    this.showTileInfo(tile);
   }
 
   battleEnemy(x: number, y: number): void {
@@ -152,17 +174,50 @@ export class TerrainMap implements OnInit {
     .then(r => r.json())
     .then(data => {
       if (data.success) {
-        this.showResult(`戰鬥勝利！擊敗了 ${tile.enemyType} (等級${tile.enemyLevel})`);
-        tile.hasEnemy = false;
-        tile.enemyType = null;
-        tile.enemyLevel = 0;
-        this.showTileInfo(tile);
+        const result = data.data?.result || 'WIN';
+        this.showResult(`戰鬥${result === 'WIN' ? '勝利' : result === 'LOSE' ? '失敗' : '平手'}！對手：${tile.enemyType} (等級${tile.enemyLevel})`);
+        if (result === 'WIN') {
+          tile.hasEnemy = false;
+          tile.enemyType = null;
+          tile.enemyLevel = 0;
+        }
+        this.selectedTile = { ...tile };
+        this.loadPlayerResources();
       } else {
         this.showResult(`戰鬥失敗：${data.message}`);
       }
     })
     .catch(error => {
       this.showResult(`戰鬥失敗：${error.message}`);
+    });
+  }
+
+  abandonTile(x: number, y: number): void {
+    if (!this.playerSelect) {
+      this.showResult('請先選擇玩家');
+      return;
+    }
+    fetch('http://localhost:1026/api/terrain/release', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ x, y, playerId: this.playerSelect })
+    })
+    .then(r => r.json())
+    .then(data => {
+      const tile = this.currentMap[y][x];
+      if (data.success) {
+        tile.occupied = false;
+        tile.owner = null;
+        tile.building = null;
+        this.selectedTile = { ...tile };
+        this.showResult(`放棄了座標 (${x}, ${y})`);
+        this.loadPlayerResources();
+      } else {
+        this.showResult(`放棄失敗：${data.message}`);
+      }
+    })
+    .catch(error => {
+      this.showResult(`放棄失敗：${error.message}`);
     });
   }
 
@@ -201,19 +256,15 @@ export class TerrainMap implements OnInit {
     if (this.previewMapData) {
       this.savePreviewMap();
     }
-    // 若要支援 else 分支可再補 overrideWithConfigMapOnly()
   }
 
   savePreviewMap(): void {
-    // console.log('保存預覽地圖函數被調用');
-    // showLoading('正在保存預覽地圖...');
     fetch('http://localhost:1026/api/terrain/savePreview', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     })
     .then(response => response.json())
     .then(data => {
-      // hideLoading();
       if (data.success) {
         this.showResult('預覽地圖已成功保存到記憶體和map.json文件');
         this.previewMapData = null;
@@ -223,7 +274,6 @@ export class TerrainMap implements OnInit {
       }
     })
     .catch(error => {
-      // hideLoading();
       this.showResult(`保存失敗：${error.message}`);
     });
   }
@@ -232,10 +282,6 @@ export class TerrainMap implements OnInit {
     this.previewMapData = null;
     this.loadMapFromConfig();
     this.showResult('已清除預覽地圖，重新載入配置地圖');
-  }
-
-  showTileInfo(tile: any): void {
-    // 可根據需求將資訊顯示在元件內
   }
 
   showResult(msg: string): void {
